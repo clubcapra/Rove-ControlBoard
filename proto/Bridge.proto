@@ -7,9 +7,9 @@ message Color {
 }
 
 enum StatusCode {
-    SC_IDLE = 0;
-    SC_SUCCESS = 1;
-    SC_FAILED = 2;
+    IDLE = 0;       // No response
+    SUCCESS = 1;    // Operation success
+    FAILED = 2;     // Operation failed
 }
 
 message RotationXY {
@@ -18,23 +18,33 @@ message RotationXY {
 }
 
 enum TPVMode {
-    TPV_VELOCITY = 0;
-    TPV_POSITION = 1;
+    VELOCITY = 0;   // Velocity control
+    ANGLE = 1;      // Angle setpoint
 }
 
+// Data sent from Jetson to Controlboard
 message DataFrameRequest {
+    // Status light
     Color rgb = 1;
+
+    // Lights
     bool frontLight = 2;
     bool backLight = 3;
 
+    // TPV servo control
     TPVMode tpvMode = 4;
+
+    // When tpvMode == VELOCITY
     RotationXY tpvRotationVelocity = 5;
+
+    // When tpvMode == ANGLE
     RotationXY tpvRotationAngle = 6;
 }
 
+// Data sent from Controlboard to Jetson
 message DataFrameResponse {
     StatusCode status = 1;
     RotationXY tpvAngle = 2;
-
+    
 }
 
