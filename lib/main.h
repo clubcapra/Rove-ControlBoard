@@ -2,6 +2,9 @@
 #define MAIN_H
 
 #include "stm32f4xx_hal.h"
+#include "pb_encode.h"
+#include "pb_decode.h"
+
 
 #define LED_PIN                                GPIO_PIN_5
 #define LED_GPIO_PORT                          GPIOA

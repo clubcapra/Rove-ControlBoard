@@ -34,6 +34,11 @@ The current firmware is tested on an STM32 [more specifically, a bluepill mcu, t
 - Modify `main.cpp` to handle custom serial commands for device control.
 - Use `LEDStrip` and `FogLight` classes for managing respective hardware components.
 
+## TODO
+
+- [ ] Have a way to share the proto files between this repo and rove's repo.
+- [ ] Try to fix ini currently getting SemanticVersionError
+
 ---
 
 Made by CAPRA |  Date: 2024-03-02

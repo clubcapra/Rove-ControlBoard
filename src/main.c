@@ -1,5 +1,6 @@
 #include "../lib/main.h"
-
+#include "../lib/Bridge.pb.h"
+#include "pb.h"
 
 void LED_Init();
 
@@ -7,6 +8,11 @@ int main(void)
 {
   HAL_Init();
   LED_Init();
+  pb_istream_t istream;
+  pb_ostream_t ostream;
+  // pb_decode()
+  DataFrameRequest response = DataFrameRequest_init_zero;
+  
 
   while (1)
   {
