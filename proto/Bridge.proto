@@ -30,7 +30,6 @@ message DataFrameRequest {
     TPVMode tpvMode = 4;
     RotationXY tpvRotationVelocity = 5;
     RotationXY tpvRotationAngle = 6;
-    bool test = 7;
 }
 
 message DataFrameResponse {
