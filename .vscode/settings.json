@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "servo.h": "c",
+        "type_traits": "cpp"
+    }
+}

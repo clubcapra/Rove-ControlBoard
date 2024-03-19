@@ -9,25 +9,22 @@
 
 SCSerial::SCSerial()
 {
-	IOTimeOut = 100;
 	pSerial = NULL;
 }
 
 SCSerial::SCSerial(u8 End):SCS(End)
 {
-	IOTimeOut = 100;
 	pSerial = NULL;
 }
 
 SCSerial::SCSerial(u8 End, u8 Level):SCS(End, Level)
 {
-	IOTimeOut = 100;
 	pSerial = NULL;
 }
 
 int SCSerial::readSCS(unsigned char *nDat, int nLen)
 {
-	HAL_UART_Receive_DMA (pSerial, nDat, nLen);
+	HAL_UART_Receive_DMA(pSerial, nDat, nLen);
 	/*
 	int Size = 0;
 	int ComData;
@@ -58,17 +55,19 @@ int SCSerial::writeSCS(unsigned char *nDat, int nLen)
 	if(nDat==NULL){
 		return 0;
 	}
-	return nDat[nLen];
+	HAL_UART_Transmit_DMA(pSerial, nDat, nLen);
+	return nLen;
 }
 
 int SCSerial::writeSCS(unsigned char bDat)
 {
-	return pSerial->write(&bDat, 1);
+	HAL_UART_Transmit_DMA(pSerial, &bDat, 1);
+	return 1;
 }
 
 void SCSerial::rFlushSCS()
 {
-	while(pSerial->read()!=-1);
+	//while(pSerial->read()!=-1);
 }
 
 void SCSerial::wFlushSCS()
