@@ -1,7 +1,18 @@
+
+/**
+ * @file servo.h
+ * @brief Header file for the servo module.
+ *
+ * This file contains the declarations of the servo module, which provides functions for controlling servos.
+ * It defines constants for servo baud rates, commands, EEPROM and SRAM addresses, and UART parameters.
+ * It also defines the structures servo_state_t and servo_handle_t for storing servo state information.
+ * The CServo class provides methods for initializing and controlling servos.
+ */
+
 #ifndef _SERVO_H
 #define _SERVO_H
 
-//#include <stdint.h>
+// #include <stdint.h>
 
 /*
 #include "cmsis_os2.h"
@@ -9,7 +20,7 @@
 #include "usart.h"
 */
 
-#include "../lib/comServo.hpp"
+#include "../include/comServo.hpp"
 
 #define SERVO_BAUD_1M 0
 #define SERVO_BAUD_0_5M 1
@@ -23,7 +34,6 @@
 #define SERVO_BAUD_14400 9
 #define SERVO_BAUD_9600 10
 #define SERVO_BAUD_4800 11
-
 
 // Commands
 #define SERVO_PING_CMD 0x01
@@ -102,47 +112,40 @@ enum servo_result_t
   SERVO_TX_TIMOUT,
 };*/
 
-
-
-
 // HAL wrapper code
-
-// Which USART peripheral is connected to the servos
-#define SERVO_UART_INSTANCE USART1
 
 // Event flag for DMA RX completed
 #define SERVO_DMA_RECEIVED_MSK 0x0001U
 
-// Event Flags object to track when a DMA request is finished
-//extern osEventFlagsId_t servo_received_flag;
-
-
-
+/**
+ * @class CServo
+ * @brief Represents a servo motor.
+ *
+ * The CServo class provides methods to control and interact with a servo motor.
+ * It allows setting the servo's position, speed, and mode, as well as reading
+ * various parameters such as voltage, current, position, speed, and load.
+ */
 class CServo
 {
 
 private:
+  servo_handle_t s;
+  ComServo *comServo = ComServo::getInstance();
 
-servo_handle_t s;
-ComServo *comServo = ComServo::getInstance();
+  uint8_t txBuffer[9] = {
+      // Fill tx_buffer with preamble
+      0xff,
+      0xff,
+  };
+  uint8_t rxBuffer[16];
 
-uint8_t txBuffer[9] = {
-    // Fill tx_buffer with preamble
-    0xff,
-    0xff,
-};
-uint8_t rxBuffer[16];
+  bool servoCommand(uint8_t cmd);
+  bool servoWriteMemAddr(uint8_t addr, uint8_t value);
+  bool servoWriteMemAddrU16(uint8_t addr, uint16_t value);
+  bool servoReadMemAddr(uint8_t addr, uint8_t *value, size_t mem_bytes);
 
-
-bool servoCommand(uint8_t cmd);
-bool servoWriteMemAddr(uint8_t addr, uint8_t value);
-bool servoWriteMemAddrU16(uint8_t addr, uint16_t value);
-bool servoReadMemAddr( uint8_t addr, uint8_t *value, size_t mem_bytes);
-
-
-size_t constructMessage(size_t dataBytes, ...);
-bool rxChecksumOk(const uint8_t totalMsgLen);
-
+  size_t constructMessage(size_t dataBytes, ...);
+  bool rxChecksumOk(const uint8_t totalMsgLen);
 
 public:
   CServo(uint8_t id, uint8_t acc, uint16_t goalSpeed);
@@ -154,29 +157,27 @@ public:
   bool servoInit(uint8_t acc, uint16_t goalSpeed);
   bool servoPing();
 
-
-  //enum servo_result_t servoReadState();
-
   bool servoReadVoltage();
   bool servoReadCurrent();
   bool servoReadPosition();
   bool servoReadSpeed();
   bool servoReadLoad();
 
+  uint16_t getPosition();
+  uint16_t getSpeed();
+  uint16_t getLoad();
+  uint8_t getVoltage();
+  uint16_t getCurrent();
+
   /**
- * Set servo desired speed, should only be used in wheel mode
- */
-bool servoSetSpeed(uint16_t speedU16);
+   * Set servo desired speed, should only be used in wheel mode
+   */
+  bool servoSetSpeed(uint16_t speedU16);
 
-/**
- * Set servo desired position, should only be used in servo mode
- */
-bool servoSetServoPosition(uint16_t angleU16);
-	
-
-
-
-
+  /**
+   * Set servo desired position, should only be used in servo mode
+   */
+  bool servoSetServoPosition(uint16_t angleU16);
 };
 
 #endif //_SERVO_H

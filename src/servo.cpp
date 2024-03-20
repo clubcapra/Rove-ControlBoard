@@ -9,6 +9,13 @@
 
 //osEventFlagsId_t servo_received_flag;
 
+/**
+ * @brief Constructs a new instance of the CServo class.
+ *
+ * @param servoId The ID of the servo.
+ * @param acc The acceleration value for the servo.
+ * @param goalSpeed The goal speed for the servo.
+ */
 CServo::CServo(uint8_t servoId, uint8_t acc, uint16_t goalSpeed)
 {
     
@@ -27,10 +34,14 @@ CServo::CServo(uint8_t servoId, uint8_t acc, uint16_t goalSpeed)
 }
 
 
+
 /**
- * Verifies if the checksum received checksum matches the calculated checksum
- * @param total_msg_len length of message in bytes
- * @return true if checksum in rx_buffer matches
+ * @brief Checks if the received message checksum is valid.
+ *
+ * This function verifies the checksum of a received message by comparing it with the expected checksum.
+ *
+ * @param totalMsgLen The total length of the received message.
+ * @return `true` if the checksum is valid, `false` otherwise.
  */
 bool CServo::rxChecksumOk(const uint8_t totalMsgLen)
 {
@@ -99,6 +110,14 @@ size_t CServo::constructMessage(size_t dataBytes, ...)
 }
 
 
+/**
+ * @brief Sends a command to the servo.
+ *
+ * This function sends a command to the servo specified by the `cmd` parameter.
+ *
+ * @param cmd The command to send to the servo.
+ * @return `true` if the command was sent successfully, `false` otherwise.
+ */
 bool CServo::servoCommand(uint8_t cmd)
 {
 
@@ -116,6 +135,14 @@ bool CServo::servoCommand(uint8_t cmd)
 
 // ...
 
+/**
+ * Enables the wheel mode for the servo.
+ *
+ * This function enables the wheel mode for the servo, allowing it to rotate continuously like a wheel.
+ * Once the wheel mode is enabled, the servo will keep rotating until it is explicitly stopped.
+ *
+ * @return True if the wheel mode was successfully enabled, false otherwise.
+ */
 bool CServo::servoEnableWheelMode()
 {
     bool res;
@@ -138,6 +165,13 @@ bool CServo::servoEnableWheelMode()
 // ...
 
 
+/**
+ * Writes a value to a memory address of the servo.
+ *
+ * @param addr The memory address to write to.
+ * @param value The value to write.
+ * @return True if the write operation was successful, false otherwise.
+ */
 bool CServo::servoWriteMemAddr(uint8_t addr, uint8_t value)
 {
     bool res;
@@ -153,6 +187,13 @@ bool CServo::servoWriteMemAddr(uint8_t addr, uint8_t value)
 }
 
 
+/**
+ * Writes a 16-bit value to a memory address of the servo.
+ *
+ * @param addr The memory address to write to.
+ * @param value The 16-bit value to write.
+ * @return True if the write operation was successful, false otherwise.
+ */
 bool CServo::servoWriteMemAddrU16(uint8_t addr, uint16_t value)
 {
     bool res;
@@ -171,10 +212,16 @@ bool CServo::servoWriteMemAddrU16(uint8_t addr, uint16_t value)
 // ...
 
 
+/**
+ * Reads data from the specified memory address of the servo.
+ *
+ * @param addr The memory address to read from.
+ * @param buf Pointer to the buffer where the read data will be stored.
+ * @param memBytes The number of bytes to read from the memory address.
+ * @return `true` if the read operation was successful, `false` otherwise.
+ */
 bool CServo::servoReadMemAddr(uint8_t addr, uint8_t *buf, size_t memBytes)
 {
-    bool res;
-
     size_t nBytes = constructMessage(3, SERVO_MEM_READ_CMD, addr, memBytes);
 
     comServo->readWriteServo(txBuffer, nBytes, rxBuffer, 6 + memBytes);
@@ -196,6 +243,11 @@ bool CServo::servoReadMemAddr(uint8_t addr, uint8_t *buf, size_t memBytes)
 
 // ...
 
+/**
+ * Pings the servo to check if it is responsive.
+ *
+ * @return true if the servo responds, false otherwise.
+ */
 bool CServo::servoPing()
 {
     return servoCommand(SERVO_PING_CMD);
@@ -203,6 +255,12 @@ bool CServo::servoPing()
 
 // ...
 
+/**
+ * Sets the position of the servo motor.
+ *
+ * @param angleU16 The desired angle of the servo motor in degrees.
+ * @return True if the servo position was set successfully, false otherwise.
+ */
 bool CServo::servoSetServoPosition(uint16_t angleU16)
 {
     return servoWriteMemAddrU16(SERVO_SRAM_GOAL_POSITION_L, angleU16);
@@ -210,12 +268,25 @@ bool CServo::servoSetServoPosition(uint16_t angleU16)
 
 // ...
 
+/**
+ * @brief Sets the speed of the servo.
+ *
+ * This function sets the speed of the servo to the specified value.
+ *
+ * @param speedU16 The speed value to set for the servo.
+ * @return True if the speed was set successfully, false otherwise.
+ */
 bool CServo::servoSetSpeed(uint16_t speedU16)
 {
     return servoWriteMemAddrU16(SERVO_SRAM_GOAL_SPEED_L, speedU16);
 }
 
 
+/**
+ * Reads the voltage of the servo.
+ *
+ * @return true if the voltage reading was successful, false otherwise.
+ */
 bool CServo::servoReadVoltage()
 {
     bool res;
@@ -230,6 +301,11 @@ bool CServo::servoReadVoltage()
     return true;
 }
 
+/**
+ * Reads the current of the servo.
+ *
+ * @return true if the current reading was successful, false otherwise.
+ */
 bool CServo::servoReadCurrent()
 {
     bool res;
@@ -244,6 +320,11 @@ bool CServo::servoReadCurrent()
     return true;
 }
 
+/**
+ * Reads the position of the servo.
+ *
+ * @return true if the position reading was successful, false otherwise.
+ */
 bool CServo::servoReadPosition()
 {
     bool res;
@@ -258,6 +339,11 @@ bool CServo::servoReadPosition()
     return true;
 }
 
+/**
+ * Reads the speed of the servo.
+ *
+ * @return true if the speed reading was successful, false otherwise.
+ */
 bool CServo::servoReadSpeed()
 {
     bool res;
@@ -272,6 +358,11 @@ bool CServo::servoReadSpeed()
     return true;
 }
 
+/**
+ * Reads the load of the servo.
+ *
+ * @return true if the load reading was successful, false otherwise.
+ */
 bool CServo::servoReadLoad()
 {
     bool res;
@@ -286,11 +377,41 @@ bool CServo::servoReadLoad()
     return true;
 }
 
+uint16_t CServo:: getPosition()
+{
+    return s.state.position;
+}
+
+uint16_t CServo::getSpeed()
+{
+    return s.state.speed;
+}
+
+uint16_t CServo::getLoad()
+{
+    return s.state.load;
+}
+
+uint8_t CServo::getVoltage()
+{
+    return s.state.voltageV;
+}
+
+uint16_t CServo::getCurrent()
+{
+    return s.state.currentMa;
+}
+
+/**
+ * Returns the position of the servo in degrees.
+ * 
+ * In the Waveshare servo reference library, the position is represented as a 16-bit
+ * sign-magnitude value. However, in reality, it's a 12-bit unsigned value, which is
+ * typically what magnetic encoders output.
+ * 
+ * @return The position of the servo in degrees.
+ */
 float CServo::servoGetPositionDegrees()
 {
-    // In the Waveshare servo reference library, the position is represented as 16-bit
-    // sign-magnitude, but in reality, it's a 12 bit unsigned value, which is
-    // usually what magnetic encoders spew out.
-
     return (((float)s.state.position) / 4095.0f) * 360.0f;
 }

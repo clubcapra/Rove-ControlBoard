@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "servo.h": "c",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "stm32f4xx_it.h": "c"
     }
 }
