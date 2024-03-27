@@ -77,6 +77,7 @@ void SCS::writeBuf(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen, u8 Fun)
 		bBuf[3] = msgLen;
 		writeSCS(bBuf, 5);
 	}
+	
 	CheckSum = ID + msgLen + Fun + MemAddr;
 	u8 i = 0;
 	if(nDat){
@@ -282,7 +283,7 @@ int SCS::checkHead()
 int	SCS::Ack(u8 ID)
 {
 	Error = 0;
-	if(ID!=0xfe && Level){
+	if(ID!=0xfe && Level){ 
 		if(!checkHead()){
 			return 0;
 		}

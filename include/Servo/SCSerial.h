@@ -26,11 +26,14 @@ protected:
 	virtual void rFlushSCS();//
 	virtual void wFlushSCS();//
 public:
-	//unsigned long int IOTimeOut;//I/O timeout
+	unsigned long int IOTimeOut;//I/O timeout
 	UART_HandleTypeDef *pSerial;//serial pointer
 	int Err;
 public:
 	virtual int getErr(){  return Err;  }
+private:
+	uint8_t wBuf[128];
+	uint8_t wLen = 0;
 };
 
 #endif

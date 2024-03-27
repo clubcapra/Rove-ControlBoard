@@ -19,10 +19,10 @@ private:
    
     ComServo(void);
 
-    UART_HandleTypeDef *huart2; /**< UART handle for communication. */
+    UART_HandleTypeDef *huart6; /**< UART handle for communication. */
 
 public:
-   
+   bool flagRx;
     
     void readWriteServo(uint8_t *tx, uint16_t tx_size, uint8_t *rx, uint16_t rx_size);
 

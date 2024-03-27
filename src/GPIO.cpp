@@ -7,7 +7,7 @@
  */
 
 
-#include "../lib/GPIO.h"
+#include "../include/GPIO.h"
 
 GPIO::GPIO(volatile uint32_t* gpioBase)
 {

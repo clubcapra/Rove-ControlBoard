@@ -25,8 +25,17 @@ ComServo::ComServo()
  */
 void ComServo::readWriteServo(uint8_t *tx, uint16_t tx_size, uint8_t *rx, uint16_t rx_size)
 {   
-    HAL_UARTEx_ReceiveToIdle_DMA(huart2, rx, 16);   
-    HAL_UART_Transmit_DMA(huart2, tx, tx_size);
+    //HAL_StatusTypeDef res;
+    //bool test1=0;
+    //HAL_UART_Receive_IT(huart6, rx, rx_size); // Start receiving data from the servo (non-blocking
+    HAL_UARTEx_ReceiveToIdle_DMA(huart6, rx, rx_size);
+    //HAL_UART_Transmit_IT(huart6, tx, tx_size);
+      
+    HAL_UART_Transmit(huart6, tx, tx_size,1000);
+    //while (flagRx ==0);
+    //flagRx = 0;
+    
+    
 }
 
 /**
@@ -36,7 +45,7 @@ void ComServo::readWriteServo(uint8_t *tx, uint16_t tx_size, uint8_t *rx, uint16
  */
 void ComServo::setHuart(UART_HandleTypeDef *huart)
 {
-    huart2 = huart;
+    huart6 = huart;
 }
 
 

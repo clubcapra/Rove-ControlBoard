@@ -20,7 +20,7 @@
 #include "usart.h"
 */
 
-#include "../include/comServo.hpp"
+#include "comServo.hpp"
 
 #define SERVO_BAUD_1M 0
 #define SERVO_BAUD_0_5M 1

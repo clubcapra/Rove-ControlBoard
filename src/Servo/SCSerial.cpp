@@ -24,7 +24,10 @@ SCSerial::SCSerial(u8 End, u8 Level):SCS(End, Level)
 
 int SCSerial::readSCS(unsigned char *nDat, int nLen)
 {
-	HAL_UART_Receive_DMA(pSerial, nDat, nLen);
+	//HAL_UART_Receive_DMA(pSerial, nDat, nLen);
+	//HAL_UARTEx_ReceiveToIdle_DMA(pSerial, nDat, nLen);
+	//HAL_UART_Receive(pSerial, nDat, nLen,100);
+
 	/*
 	int Size = 0;
 	int ComData;
@@ -47,29 +50,56 @@ int SCSerial::readSCS(unsigned char *nDat, int nLen)
 			break;
 		}
 	}*/
-	return nLen;
+	if(HAL_UART_Receive(pSerial, nDat, nLen, 100)==HAL_OK){
+		return nLen;
+	}else{
+		return 0;
+	}
+	
+	//return nLen;
 }
 
 int SCSerial::writeSCS(unsigned char *nDat, int nLen)
 {
+	/*
 	if(nDat==NULL){
 		return 0;
 	}
-	HAL_UART_Transmit_DMA(pSerial, nDat, nLen);
-	return nLen;
+	HAL_UART_Transmit_IT(pSerial, nDat, nLen);
+	return nLen;*/
+	while(nLen--){
+		if(wLen<sizeof(wBuf)){
+			wBuf[wLen] = *nDat;
+			wLen++;
+			nDat++;
+		}
+	}
+	return wLen;
 }
 
 int SCSerial::writeSCS(unsigned char bDat)
 {
-	HAL_UART_Transmit_DMA(pSerial, &bDat, 1);
-	return 1;
+	if(wLen<sizeof(wBuf)){
+		wBuf[wLen] = bDat;
+		wLen++;
+	}
+	return wLen;
+	/*
+	HAL_UART_Transmit_IT(pSerial, &bDat, 1);
+	return 1;*/
 }
 
 void SCSerial::rFlushSCS()
 {
-	//while(pSerial->read()!=-1);
+	uint16_t i = 500;
+	while(i--);
+	
 }
 
 void SCSerial::wFlushSCS()
 {
+	if(wLen){
+		HAL_UART_Transmit_IT(pSerial,wBuf, wLen);
+		wLen = 0;
+	}
 }

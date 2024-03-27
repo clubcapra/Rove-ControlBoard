@@ -1,4 +1,4 @@
-#include "../include/servo.h"
+#include "servo.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -26,6 +26,7 @@ CServo::CServo(uint8_t servoId, uint8_t acc, uint16_t goalSpeed)
     s.state.position = 0;
     s.state.speed = 0;
     s.state.load = 0;
+
     
     servoWriteMemAddr(SERVO_SRAM_ACC, acc);
     servoWriteMemAddrU16(SERVO_SRAM_GOAL_SPEED_L, goalSpeed);
@@ -160,6 +161,26 @@ bool CServo::servoEnableWheelMode()
         return res;
 
     return true;
+}
+
+bool CServo::servoEnableServoMode()
+{
+    bool res;
+
+    res = servoWriteMemAddr(SERVO_SRAM_LOCK, 0);
+    if (!res)
+        return res;
+
+    res = servoWriteMemAddr(SERVO_EEPROM_MODE, 0);
+    if (!res)
+        return res;
+
+    res = servoWriteMemAddr(SERVO_SRAM_LOCK, 1);
+    if (!res)
+        return res;
+
+    return true;
+
 }
 
 // ...
