@@ -50,12 +50,19 @@ int SCSerial::readSCS(unsigned char *nDat, int nLen)
 			break;
 		}
 	}*/
-	if(HAL_UART_Receive(pSerial, nDat, nLen, 100)==HAL_OK){
+	/*
+	if(HAL_UART_Receive(pSerial, nDat, nLen, 200)==HAL_OK){
+		return nLen;
+	}else{
+		return 0;
+	}*/
+	
+	if(HAL_UART_Receive_DMA(pSerial, nDat, nLen)==HAL_OK){
 		return nLen;
 	}else{
 		return 0;
 	}
-	
+
 	//return nLen;
 }
 

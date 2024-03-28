@@ -59,30 +59,44 @@ int main(void)
 
   bool test=0;
   int ID=1;
-  uint8_t test1[7]={0xff,0xff,0xff,0x01,0x02,0x01,0xfb};
+  uint8_t test1[6]={0xff,0xff,0x00,0x02,0x06,0xf7};
   //st.WritePosEx(1, 1000, 1500, 50);
-  
+  //HAL_UART_Transmit_IT(&huart6, test1, 6);
+  /*
+  st.unLockEprom(1); //Unlock EPROM-SAFE
+  st.writeByte(1, SMS_STS_ID, 2);//Change ID
+  st.LockEprom(2); // Lock EPROM-SAFE
+  */
   while (1)
   {
   //HAL_UART_Transmit_IT(&huart6, (uint8_t *)"Hello World\n", 12);
-    //HAL_UART_Transmit_IT(&huart6, test1, 7);
+    
 
-    //Temps de 2,2 s
+    //Temps de 2,2 s 
     if(timerInt >= 22)
 		{
       timerInt=0;
       //led2.ledToggle();
       //st.WheelMode(1);
+      
+      
       if(test==0)
       {
-        test=1;
-        st.WritePosEx(ID, 1000, 1500, 50);
-        led2.ledOn();
+        if(st.WritePosEx(ID, 1000, 1500, 50)==1)
+        {
+          led2.ledOn();
+          test=1;
+        }
+        
       }
       else{
-        test=0;
-        st.WritePosEx(ID, 20, 1500, 50);
-         led2.ledOff();
+        
+        if(st.WritePosEx(ID, 20, 1500, 50)==1)
+        {
+          test=0;
+          led2.ledOff(); 
+        }
+         
       }
       
 
@@ -97,7 +111,8 @@ int main(void)
           if(test==0)
             led2.ledOff();
         }
-      }
+      }*/
+      /*
       else
       {
         st.WritePosEx(1, 1000, 1500, 50);
