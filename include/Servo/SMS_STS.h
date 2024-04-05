@@ -59,10 +59,11 @@ public:
 	SMS_STS();
 	SMS_STS(u8 End);
 	SMS_STS(u8 End, u8 Level);
+	virtual int WritePos(u8 ID, u16 Position, u16 Time, u16 Speed);//general write for single servo
 	virtual int WritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC = 0);//general write for single servo
 	virtual int RegWritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC = 0);//position write asynchronously for single servo(call RegWriteAction to action)
 	virtual void SyncWritePosEx(u8 ID[], u8 IDN, s16 Position[], u16 Speed[], u8 ACC[]);//write synchronously for multi servos
-	virtual int WheelMode(u8 ID);//speed loop mode
+	virtual int WheelMode(u8 ID,bool value);//speed loop mode
 	virtual int WriteSpe(u8 ID, s16 Speed, u8 ACC = 0);//speed loop mode ctrl command
 	virtual int EnableTorque(u8 ID, u8 Enable);//torque ctrl command
 	virtual int unLockEprom(u8 ID);//eprom unlock
@@ -77,8 +78,12 @@ public:
 	virtual int ReadMove(int ID);//read move mode
 	virtual int ReadCurrent(int ID);//read current
 	virtual int ReadMode(int ID);//read working mode
+	
 private:
 	u8 Mem[SMS_STS_PRESENT_CURRENT_H-SMS_STS_PRESENT_POSITION_L+1];
+
+	enum _SERVO_COM_RX{WAIT,ACK, READ ,READ_BYTE,READ_WORD, PING};
+	_SERVO_COM_RX state;
 };
 
 #endif

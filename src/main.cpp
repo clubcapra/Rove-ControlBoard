@@ -26,6 +26,7 @@ static void MX_USART3_UART_Init(void);
 
 
 volatile uint16_t timerInt=0;
+volatile uint16_t timertest=0;
 SMS_STS st;
 //SCSCL st;
 
@@ -58,52 +59,72 @@ int main(void)
 
 
   bool test=0;
-  int ID=1;
-  uint8_t test1[6]={0xff,0xff,0x00,0x02,0x06,0xf7};
-  //st.WritePosEx(1, 1000, 1500, 50);
-  //HAL_UART_Transmit_IT(&huart6, test1, 6);
+ 
+  int ID=0x02;
+  
+
   /*
   st.unLockEprom(1); //Unlock EPROM-SAFE
   st.writeByte(1, SMS_STS_ID, 2);//Change ID
   st.LockEprom(2); // Lock EPROM-SAFE
   */
+
+  //st.WritePosEx(ID, 2000, 1500, 100);
+  //st.EnableTorque(ID,0);
+ 
+     
   while (1)
   {
-  //HAL_UART_Transmit_IT(&huart6, (uint8_t *)"Hello World\n", 12);
     
 
     //Temps de 2,2 s 
     if(timerInt >= 22)
 		{
       timerInt=0;
-      //led2.ledToggle();
-      //st.WheelMode(1);
       
+
+      
+      st.ReadVoltage(1);
       
       if(test==0)
       {
-        if(st.WritePosEx(ID, 1000, 1500, 50)==1)
+       
+        //st.WritePosEx(1, 2000, 15000,200);
+        //st.WritePosEx(2, -2000, 15000,200);
+        /*
+        if(st.ReadPos(ID)==2000)
         {
           led2.ledOn();
           test=1;
-        }
+        }*/
+        //led2.ledOn();
+        test=1;
+        
         
       }
       else{
-        
-        if(st.WritePosEx(ID, 20, 1500, 50)==1)
+
+        //st.WritePosEx(1, -2000, 15000,200);
+        //st.WritePosEx(2, 2000, 15000,200);
+        /*
+        if(st.ReadPos(ID)==-2000)
         {
+          led2.ledOff();
           test=0;
-          led2.ledOff(); 
-        }
-         
+        }*/
+        test=0;
+        //led2.ledOff(); 
+        
+        
+        
       }
       
-
+      
       /*
       if(test==0)
       {
         ID = st.Ping(1);//If you ping the servo with that ID and receive no response, it will return -1.
+        test4= st.Error;
         if(ID!=-1){
           led2.ledOn();
           test=1;
@@ -112,33 +133,11 @@ int main(void)
             led2.ledOff();
         }
       }*/
-      /*
-      else
-      {
-        st.WritePosEx(1, 1000, 1500, 50);
-      }*/
       
-      //HAL_UART_Transmit_IT(&huart6, test1, 7);
       
-      /*
-      test=servo1.servoPing();
-      if (test==1)
-      {
-        led2.ledOn();
-      }
-      else
-      {
-        led2.ledOff();
-      }*/
-    
     }
 
-    /*
-    if(gpioC.readPin(13)==LOW)
-    {
-      test=servo1.servoPing();
-      led2.ledToggle();
-    }*/
+    
     
   }
 }
@@ -238,7 +237,7 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 1000000;
+  huart3.Init.BaudRate = 115200;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -266,7 +265,7 @@ static void MX_USART6_UART_Init(void)
 
   /* USER CODE END USART6_Init 1 */
   huart6.Instance = USART6;
-  huart6.Init.BaudRate = 1000000;
+  huart6.Init.BaudRate = 115200;
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
   huart6.Init.StopBits = UART_STOPBITS_1;
   huart6.Init.Parity = UART_PARITY_NONE;
@@ -325,7 +324,12 @@ static void MX_TIM2_Init(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
-  
+ if(huart == &huart6)
+ {
+  //st.flagRx=1;
+
+  HAL_NVIC_DisableIRQ(USART6_IRQn);
+ }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)

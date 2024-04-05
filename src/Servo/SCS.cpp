@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include "../include/Servo/SCS.h"
+#include "stm32f4xx_hal.h"
 
 
 SCS::SCS()
@@ -177,31 +178,38 @@ int SCS::Read(u8 ID, u8 MemAddr, u8 *nData, u8 nLen)
 	rFlushSCS();
 	writeBuf(ID, MemAddr, &nLen, 1, INST_READ);
 	wFlushSCS();
-	if(!checkHead()){
-		return 0;
+	u8 bBuf[10];
+	int Size =readSCS(bBuf, nLen);
+	if(!checkHead(bBuf)){
+		return -1;
 	}
-	u8 bBuf[4];
 	Error = 0;
+	/*
 	if(readSCS(bBuf, 3)!=3){
 		return 0;
-	}
-	int Size = readSCS(nData, nLen);
+	}*/
 	if(Size!=nLen){
 		return 0;
 	}
-	if(readSCS(bBuf+3, 1)!=1){
+	if(bBuf[5]!=1){
 		return 0;
 	}
-	u8 calSum = bBuf[0]+bBuf[1]+bBuf[2];
+	//u8 calSum = bBuf[2]+bBuf[3]+bBuf[4];
+	u8 calSum=0;
+	for (u8 i = 2; i < nLen; i++)
+	{
+		calSum += bBuf[i];
+	}
+	
 	u8 i;
 	for(i=0; i<Size; i++){
 		calSum += nData[i];
 	}
 	calSum = ~calSum;
-	if(calSum!=bBuf[3]){
+	if(calSum!=bBuf[nLen-1]){
 		return 0;
 	}
-	Error = bBuf[2];
+	Error = bBuf[4];
 	return Size;
 }
 
@@ -209,8 +217,8 @@ int SCS::Read(u8 ID, u8 MemAddr, u8 *nData, u8 nLen)
 int SCS::readByte(u8 ID, u8 MemAddr)
 {
 	u8 bDat;
-	int Size = Read(ID, MemAddr, &bDat, 1);
-	if(Size!=1){
+	int Size = Read(ID, MemAddr, &bDat, 7);
+	if(Size!=7){
 		return -1;
 	}else{
 		return bDat;
@@ -223,8 +231,8 @@ int SCS::readWord(u8 ID, u8 MemAddr)
 	u8 nDat[2];
 	int Size;
 	u16 wDat;
-	Size = Read(ID, MemAddr, nDat, 2);
-	if(Size!=2)
+	Size = Read(ID, MemAddr, nDat, 8);
+	if(Size!=8)
 		return -1;
 	wDat = SCS2Host(nDat[0], nDat[1]);
 	return wDat;
@@ -233,37 +241,48 @@ int SCS::readWord(u8 ID, u8 MemAddr)
 // Ping command, return the ID of servo, return -1 when timeout.
 int	SCS::Ping(u8 ID)
 {
+	u8 bBuf[6];
+	readSCS(bBuf, 6);
+
 	rFlushSCS();
 	writeBuf(ID, 0, NULL, 0, INST_PING);
 	wFlushSCS();
 	Error = 0;
-	if(!checkHead()){
+	
+	if(!checkHead(bBuf)){
 		return -1;
 	}
+	/*
 	u8 bBuf[4];
 	if(readSCS(bBuf, 4)!=4){
 		return -1;
-	}
-	if(bBuf[0]!=ID && ID!=0xfe){
+	}*/
+	if(bBuf[2]!=ID && ID!=0xfe){
 		return -1;
 	}
-	if(bBuf[1]!=2){
+	if(bBuf[3]!=2){
 		return -1;
 	}
-	u8 calSum = ~(bBuf[0]+bBuf[1]+bBuf[2]);
-	if(calSum!=bBuf[3]){
+	u8 calSum = ~(bBuf[2]+bBuf[3]+bBuf[4]);
+	if(calSum!=bBuf[5]){
 		return -1;			
 	}
-	Error = bBuf[2];
-	return bBuf[0];
+	Error = bBuf[4];
+	return bBuf[2];
 }
 
-int SCS::checkHead()
+int SCS::checkHead(unsigned char *nDat)
 {
+	
+	if(nDat[0]!=0xff && nDat[1]!=0xff){
+		return 0;
+	}
+	/*
 	u8 bDat;
 	u8 bBuf[2] = {0, 0};
 	u8 Cnt = 0;
 	while(1){
+		
 		if(!readSCS(&bDat, 1)){
 			return 0;
 		}
@@ -276,7 +295,7 @@ int SCS::checkHead()
 		if(Cnt>10){
 			return 0;
 		}
-	}
+	}*/
 	return 1;
 }
 
@@ -284,24 +303,27 @@ int	SCS::Ack(u8 ID)
 {
 	Error = 0;
 	if(ID!=0xfe && Level){ 
-		if(!checkHead()){
+		u8 bBuf[6];
+		readSCS(bBuf, 6);
+		if(!checkHead(bBuf)){
 			return 0;
 		}
-		u8 bBuf[4];
+		/*
 		if(readSCS(bBuf, 4)!=4){
 			return 0;
-		}
-		if(bBuf[0]!=ID){
+		}*/
+		
+		if(bBuf[2]!=ID){
 			return 0;
 		}
-		if(bBuf[1]!=2){
+		if(bBuf[3]!=2){
 			return 0;
 		}
-		u8 calSum = ~(bBuf[0]+bBuf[1]+bBuf[2]);
-		if(calSum!=bBuf[3]){
+		u8 calSum = ~(bBuf[2]+bBuf[3]+bBuf[4]);
+		if(calSum!=bBuf[5]){
 			return 0;			
 		}
-		Error = bBuf[2];
+		Error = bBuf[4];
 	}
 	return 1;
 }
@@ -331,23 +353,26 @@ int SCS::syncReadPacketRx(u8 ID, u8 *nDat)
 {
 	syncReadRxPacket = nDat;
 	syncReadRxPacketIndex = 0;
-	u8 bBuf[4];
-	if(!checkHead()){
+	u8 bBuf[6];
+	readSCS(bBuf, 6);
+	if(!checkHead(bBuf)){
 		return 0;
 	}
+	/*
 	if(readSCS(bBuf, 3)!=3){
 		return 0;
-	}
-	if(bBuf[0]!=ID){
+	}*/
+	if(bBuf[2]!=ID){
 		return 0;
 	}
-	if(bBuf[1]!=(syncReadRxPacketLen+2)){
+	if(bBuf[3]!=(syncReadRxPacketLen+2)){
 		return 0;
 	}
-	Error = bBuf[2];
+	Error = bBuf[4];
+	/*
 	if(readSCS(nDat, syncReadRxPacketLen)!=syncReadRxPacketLen){
 		return 0;
-	}
+	}*/
 	return syncReadRxPacketLen;
 }
 

@@ -46,6 +46,9 @@ protected:
 	void Host2SCS(u8 *DataL, u8* DataH, u16 Data); // one 16-digit number split into two 8-digit numbers
 	u16	SCS2Host(u8 DataL, u8 DataH); // combination of two 8-digit numbers into one 16-digit number
 	int	Ack(u8 ID); // return response
-	int checkHead(); // Frame header detection
+	int checkHead(unsigned char *nDat); // Frame header detection
+	//u8 bBuf[8];
+
+	
 };
 #endif

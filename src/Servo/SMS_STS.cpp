@@ -6,6 +6,9 @@
 
 #include "../include/Servo/SMS_STS.h"
 
+/**
+ * @brief Constructs a new instance of the SMS_STS class.
+ */
 SMS_STS::SMS_STS()
 {
 	End = 0;
@@ -18,6 +21,8 @@ SMS_STS::SMS_STS(u8 End):SCSerial(End)
 SMS_STS::SMS_STS(u8 End, u8 Level):SCSerial(End, Level)
 {
 }
+
+
 
 int SMS_STS::WritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC)
 {
@@ -32,6 +37,16 @@ int SMS_STS::WritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC)
 	Host2SCS(bBuf+5, bBuf+6, Speed);
 	
 	return genWrite(ID, SMS_STS_ACC, bBuf, 7);
+}
+
+int SMS_STS::WritePos(u8 ID, u16 Position, u16 Time, u16 Speed)
+{
+	u8 bBuf[6];
+	Host2SCS(bBuf+0, bBuf+1, Position);
+	Host2SCS(bBuf+2, bBuf+3, Time);
+	Host2SCS(bBuf+4, bBuf+5, Speed);
+	
+	return genWrite(ID, SMS_STS_GOAL_POSITION_L, bBuf, 6);
 }
 
 int SMS_STS::RegWritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC)
@@ -75,9 +90,9 @@ void SMS_STS::SyncWritePosEx(u8 ID[], u8 IDN, s16 Position[], u16 Speed[], u8 AC
     syncWrite(ID, IDN, SMS_STS_ACC, offbuf, 7);
 }
 
-int SMS_STS::WheelMode(u8 ID)
+int SMS_STS::WheelMode(u8 ID,bool value)
 {
-	return writeByte(ID, SMS_STS_MODE, 1);		
+	return writeByte(ID, SMS_STS_MODE, value);		
 }
 
 int SMS_STS::WriteSpe(u8 ID, s16 Speed, u8 ACC)

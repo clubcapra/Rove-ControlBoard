@@ -50,18 +50,22 @@ int SCSerial::readSCS(unsigned char *nDat, int nLen)
 			break;
 		}
 	}*/
-	/*
-	if(HAL_UART_Receive(pSerial, nDat, nLen, 200)==HAL_OK){
-		return nLen;
-	}else{
-		return 0;
-	}*/
 	
-	if(HAL_UART_Receive_DMA(pSerial, nDat, nLen)==HAL_OK){
+	if(HAL_UART_Receive(pSerial, nDat, nLen,100)==HAL_OK){
 		return nLen;
 	}else{
 		return 0;
 	}
+
+	/*
+	if(HAL_UARTEx_ReceiveToIdle_DMA(pSerial, nDat, nLen)==HAL_OK){
+		
+		//__HAL_DMA_DISABLE_IT(pSerial->hdmarx, DMA_IT_TC);
+		//__HAL_UART_DISABLE_IT(pSerial, UART_IT_TXE);
+		return nLen;
+	}else{
+		return 0;
+	}*/
 
 	//return nLen;
 }
@@ -106,7 +110,14 @@ void SCSerial::rFlushSCS()
 void SCSerial::wFlushSCS()
 {
 	if(wLen){
+		HAL_NVIC_EnableIRQ(USART6_IRQn);
 		HAL_UART_Transmit_IT(pSerial,wBuf, wLen);
 		wLen = 0;
 	}
+}
+
+void SCSerial::waitWSCS()
+{
+	while(flagRx==0);
+	flagRx = 0;
 }

@@ -25,10 +25,13 @@ protected:
 	virtual int writeSCS(unsigned char bDat);//output 1 byte
 	virtual void rFlushSCS();//
 	virtual void wFlushSCS();//
+	virtual void waitWSCS();//
 public:
 	unsigned long int IOTimeOut;//I/O timeout
 	UART_HandleTypeDef *pSerial;//serial pointer
 	int Err;
+	volatile bool flagRx=0;
+	volatile int timeOut=0;
 public:
 	virtual int getErr(){  return Err;  }
 private:
