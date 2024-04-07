@@ -12,7 +12,8 @@ CAN_HandleTypeDef hcan1;
 TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
-
+CAN_RxHeaderTypeDef RxHeader;
+CAN_TxHeaderTypeDef TxHeader;
 
 
 void SystemClock_Config(void);
@@ -27,6 +28,12 @@ static void MX_CAN1_Init(void);
 volatile uint16_t timerInt=0;
 volatile uint16_t timertest=0;
 SMS_STS st;
+
+uint8_t canRxData[8];
+uint8_t canTxData[8];
+uint32_t TxMailbox;
+int datacheck = 0;
+
 
 
 int main(void)
@@ -55,8 +62,18 @@ int main(void)
   GPIO gpioC((uint32_t *)(0x40020800UL));
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
-
-
+  HAL_CAN_Start(&hcan1);
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+  {
+	  Error_Handler();
+  }
+  TxHeader.IDE = CAN_ID_STD;
+  TxHeader.StdId = 0x446;
+  TxHeader.RTR = CAN_RTR_DATA;
+  TxHeader.DLC = 2;
+  
+  canTxData[0] = 50;  
+  canTxData[1] = 0xAA;
   
  
   int ID=0x01;
@@ -221,7 +238,20 @@ static void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+  CAN_FilterTypeDef canfilterconfig;
 
+  canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
+  canfilterconfig.FilterBank = 18;  // which filter bank to use from the assigned ones
+  canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  canfilterconfig.FilterIdHigh = 0x446<<5;
+  canfilterconfig.FilterIdLow = 0;
+  canfilterconfig.FilterMaskIdHigh = 0x446<<5;
+  canfilterconfig.FilterMaskIdLow = 0x0000;
+  canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
+  canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
+  canfilterconfig.SlaveStartFilterBank = 20;  // how many filters to assign to the CAN1 (master can)
+
+  HAL_CAN_ConfigFilter(&hcan1, &canfilterconfig);
   /* USER CODE END CAN1_Init 2 */
 
 }
@@ -323,6 +353,31 @@ static void MX_TIM2_Init(void)
   /* USER CODE END TIM2_Init 2 */
 
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == GPIO_PIN_13)
+  {
+    canTxData[0]=100; //ms delay 
+    canTxData[1]=10; //loop rep
+
+    HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
+  }
+}
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRxData) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if ((RxHeader.DLC == 2))
+  {
+	  datacheck = 1;
+  }
+}
+
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
