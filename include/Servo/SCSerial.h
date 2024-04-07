@@ -10,6 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 
+
 #include "SCS.h"
 
 class SCSerial : public SCS
@@ -35,8 +36,9 @@ public:
 public:
 	virtual int getErr(){  return Err;  }
 private:
-	uint8_t wBuf[128];
+	uint8_t wBuf[128]={0};
 	uint8_t wLen = 0;
+	
 };
 
 #endif

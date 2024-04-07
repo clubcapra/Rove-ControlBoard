@@ -82,8 +82,6 @@ public:
 private:
 	u8 Mem[SMS_STS_PRESENT_CURRENT_H-SMS_STS_PRESENT_POSITION_L+1];
 
-	enum _SERVO_COM_RX{WAIT,ACK, READ ,READ_BYTE,READ_WORD, PING};
-	_SERVO_COM_RX state;
 };
 
 #endif

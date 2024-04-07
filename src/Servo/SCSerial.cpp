@@ -7,6 +7,7 @@
 
 #include "../include/Servo/SCSerial.h"
 
+
 SCSerial::SCSerial()
 {
 	pSerial = NULL;
@@ -51,6 +52,9 @@ int SCSerial::readSCS(unsigned char *nDat, int nLen)
 		}
 	}*/
 	
+
+	
+	
 	if(HAL_UART_Receive(pSerial, nDat, nLen,100)==HAL_OK){
 		return nLen;
 	}else{
@@ -66,8 +70,8 @@ int SCSerial::readSCS(unsigned char *nDat, int nLen)
 	}else{
 		return 0;
 	}*/
-
-	//return nLen;
+	
+	//return size;
 }
 
 int SCSerial::writeSCS(unsigned char *nDat, int nLen)
@@ -110,7 +114,7 @@ void SCSerial::rFlushSCS()
 void SCSerial::wFlushSCS()
 {
 	if(wLen){
-		HAL_NVIC_EnableIRQ(USART6_IRQn);
+		//HAL_NVIC_EnableIRQ(USART6_IRQn);
 		HAL_UART_Transmit_IT(pSerial,wBuf, wLen);
 		wLen = 0;
 	}

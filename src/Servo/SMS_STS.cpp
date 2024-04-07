@@ -30,7 +30,7 @@ int SMS_STS::WritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC)
 		Position = -Position;
 		Position |= (1<<15);
 	}
-	u8 bBuf[7];
+	u8 bBuf[7]={0};
 	bBuf[0] = ACC;
 	Host2SCS(bBuf+1, bBuf+2, Position);
 	Host2SCS(bBuf+3, bBuf+4, 0);
@@ -41,7 +41,7 @@ int SMS_STS::WritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC)
 
 int SMS_STS::WritePos(u8 ID, u16 Position, u16 Time, u16 Speed)
 {
-	u8 bBuf[6];
+	u8 bBuf[6]={0};
 	Host2SCS(bBuf+0, bBuf+1, Position);
 	Host2SCS(bBuf+2, bBuf+3, Time);
 	Host2SCS(bBuf+4, bBuf+5, Speed);
@@ -55,7 +55,7 @@ int SMS_STS::RegWritePosEx(u8 ID, s16 Position, u16 Speed, u8 ACC)
 		Position = -Position;
 		Position |= (1<<15);
 	}
-	u8 bBuf[7];
+	u8 bBuf[7]={0};
 	bBuf[0] = ACC;
 	Host2SCS(bBuf+1, bBuf+2, Position);
 	Host2SCS(bBuf+3, bBuf+4, 0);

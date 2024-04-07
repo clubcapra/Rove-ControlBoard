@@ -62,7 +62,7 @@ u16 SCS::SCS2Host(u8 DataL, u8 DataH)
 void SCS::writeBuf(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen, u8 Fun)
 {
 	u8 msgLen = 2;
-	u8 bBuf[6];
+	u8 bBuf[6]={0};
 	u8 CheckSum = 0;
 	bBuf[0] = 0xff;
 	bBuf[1] = 0xff;
@@ -126,10 +126,10 @@ int SCS::RegWriteAction(u8 ID)
 // the data to write, the length of data.
 void SCS::syncWrite(u8 ID[], u8 IDN, u8 MemAddr, u8 *nDat, u8 nLen)
 {
-	rFlushSCS();
+	//rFlushSCS();
 	u8 mesLen = ((nLen+1)*IDN+4);
 	u8 Sum = 0;
-	u8 bBuf[7];
+	u8 bBuf[7]={0};
 	bBuf[0] = 0xff;
 	bBuf[1] = 0xff;
 	bBuf[2] = 0xfe;
@@ -163,7 +163,7 @@ int SCS::writeByte(u8 ID, u8 MemAddr, u8 bDat)
 
 int SCS::writeWord(u8 ID, u8 MemAddr, u16 wDat)
 {
-	u8 bBuf[2];
+	u8 bBuf[2]={0};
 	Host2SCS(bBuf+0, bBuf+1, wDat);
 	rFlushSCS();
 	writeBuf(ID, MemAddr, bBuf, 2, INST_WRITE);
@@ -175,11 +175,13 @@ int SCS::writeWord(u8 ID, u8 MemAddr, u16 wDat)
 // the ID of servo, the memory address in memory table, the return data, the length of data
 int SCS::Read(u8 ID, u8 MemAddr, u8 *nData, u8 nLen)
 {
-	rFlushSCS();
+
+	u8 bBuf[24]={0};
 	writeBuf(ID, MemAddr, &nLen, 1, INST_READ);
 	wFlushSCS();
-	u8 bBuf[10];
-	int Size =readSCS(bBuf, nLen);
+	
+	rFlushSCS();
+	int size =readSCS(bBuf, nLen+6)-6;
 	if(!checkHead(bBuf)){
 		return -1;
 	}
@@ -188,37 +190,44 @@ int SCS::Read(u8 ID, u8 MemAddr, u8 *nData, u8 nLen)
 	if(readSCS(bBuf, 3)!=3){
 		return 0;
 	}*/
-	if(Size!=nLen){
+	if(size!=nLen){
 		return 0;
 	}
+	for(u8 i=0; i<size; i++){
+		nData[i] = bBuf[i+5];
+	}
+	/*
 	if(bBuf[5]!=1){
 		return 0;
-	}
-	//u8 calSum = bBuf[2]+bBuf[3]+bBuf[4];
+	}*/
+	u8 calSum = bBuf[2]+bBuf[3]+bBuf[4];
+	/*
 	u8 calSum=0;
 	for (u8 i = 2; i < nLen; i++)
 	{
 		calSum += bBuf[i];
-	}
+	}*/
 	
 	u8 i;
-	for(i=0; i<Size; i++){
+	for(i=0; i<size; i++){
 		calSum += nData[i];
 	}
 	calSum = ~calSum;
-	if(calSum!=bBuf[nLen-1]){
+	
+	
+	if(calSum!=bBuf[(nLen+6)-1]){
 		return 0;
 	}
 	Error = bBuf[4];
-	return Size;
+	return size;
 }
 
 // read 1 byte from servo, return -1 when timeout
 int SCS::readByte(u8 ID, u8 MemAddr)
 {
 	u8 bDat;
-	int Size = Read(ID, MemAddr, &bDat, 7);
-	if(Size!=7){
+	int Size = Read(ID, MemAddr, &bDat, 1);
+	if(Size!=1){
 		return -1;
 	}else{
 		return bDat;
@@ -231,8 +240,8 @@ int SCS::readWord(u8 ID, u8 MemAddr)
 	u8 nDat[2];
 	int Size;
 	u16 wDat;
-	Size = Read(ID, MemAddr, nDat, 8);
-	if(Size!=8)
+	Size = Read(ID, MemAddr, nDat, 2);
+	if(Size!=2)
 		return -1;
 	wDat = SCS2Host(nDat[0], nDat[1]);
 	return wDat;
@@ -241,14 +250,16 @@ int SCS::readWord(u8 ID, u8 MemAddr)
 // Ping command, return the ID of servo, return -1 when timeout.
 int	SCS::Ping(u8 ID)
 {
-	u8 bBuf[6];
-	readSCS(bBuf, 6);
+	
 
 	rFlushSCS();
 	writeBuf(ID, 0, NULL, 0, INST_PING);
 	wFlushSCS();
 	Error = 0;
-	
+
+	u8 bBuf[6]={0};
+	readSCS(bBuf, 6);
+
 	if(!checkHead(bBuf)){
 		return -1;
 	}
@@ -269,6 +280,8 @@ int	SCS::Ping(u8 ID)
 	}
 	Error = bBuf[4];
 	return bBuf[2];
+
+	
 }
 
 int SCS::checkHead(unsigned char *nDat)
@@ -303,7 +316,7 @@ int	SCS::Ack(u8 ID)
 {
 	Error = 0;
 	if(ID!=0xfe && Level){ 
-		u8 bBuf[6];
+		u8 bBuf[6]={0};
 		readSCS(bBuf, 6);
 		if(!checkHead(bBuf)){
 			return 0;
@@ -353,7 +366,7 @@ int SCS::syncReadPacketRx(u8 ID, u8 *nDat)
 {
 	syncReadRxPacket = nDat;
 	syncReadRxPacketIndex = 0;
-	u8 bBuf[6];
+	u8 bBuf[6]={0};
 	readSCS(bBuf, 6);
 	if(!checkHead(bBuf)){
 		return 0;

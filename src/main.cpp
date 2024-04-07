@@ -58,11 +58,16 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
 
 
-  bool test=0;
- 
-  int ID=0x02;
   
-
+ 
+  int ID=0x01;
+  u8 id[2]={0x01,0x02};
+  int positionServo[2]={0};
+  s16 setPosition[2]={0};
+  u16 setSpeed[2]={0};
+  u8 setAcc[2]={0};
+  enum STEP_SERVO{MOVE_1, READ_M1, MOVE_2,READ_M2};
+  STEP_SERVO step=MOVE_1;
   /*
   st.unLockEprom(1); //Unlock EPROM-SAFE
   st.writeByte(1, SMS_STS_ID, 2);//Change ID
@@ -70,54 +75,62 @@ int main(void)
   */
 
   //st.WritePosEx(ID, 2000, 1500, 100);
-  //st.EnableTorque(ID,0);
- 
+  //st.WheelMode(ID,0);
+  //HAL_Delay(1000);
+  //st.WriteSpe(ID, 10000, 100);
      
   while (1)
   {
     
 
     //Temps de 2,2 s 
-    if(timerInt >= 22)
+    if(timerInt >= 10)
 		{
       timerInt=0;
       
-
+      //st.FeedBack(1);
+      //st.ReadMove(1);
       
-      st.ReadVoltage(1);
-      
-      if(test==0)
+      switch(step)
       {
-       
-        //st.WritePosEx(1, 2000, 15000,200);
-        //st.WritePosEx(2, -2000, 15000,200);
-        /*
-        if(st.ReadPos(ID)==2000)
-        {
-          led2.ledOn();
-          test=1;
-        }*/
-        //led2.ledOn();
-        test=1;
-        
+        case MOVE_1:
+          //st.WritePosEx(ID, 2048, 150, 200);
+          setPosition[0]=2048;
+          setPosition[1]=2048;
+          setSpeed[0]=1500;
+          setSpeed[1]=1500;
+          setAcc[0]=150;
+          setAcc[1]=150;
+          st.SyncWritePosEx(id,2,setPosition,setSpeed,setAcc);
+          step=READ_M1;
+          break;
+        case READ_M1:
+        positionServo[0]=st.ReadPos(id[0]);
+        positionServo[1]=st.ReadPos(id[1]);
+          if((positionServo[0]<=2058 && positionServo[0]>=2038)&&(positionServo[1]<=2058 && positionServo[1]>=2038))//
+            step=MOVE_2;
+          break;
+        case MOVE_2:
+          setPosition[0]=-2048;
+          setPosition[1]=-2048;
+          setSpeed[0]=1500;
+          setSpeed[1]=1500;
+          setAcc[0]=150;
+          setAcc[1]=150;
+          st.SyncWritePosEx(id,2,setPosition,setSpeed,setAcc);
+          //st.WritePosEx(ID, -2048, 150, 200);
+          step=READ_M2;
+          break;
+        case READ_M2:
+          positionServo[0]=st.ReadPos(id[0]);
+          positionServo[1]=st.ReadPos(id[1]);
+          if((positionServo[0]<=5 && positionServo[0]>=0)&&(positionServo[1]<=5 && positionServo[1]>=0))
+            step=MOVE_1;
+          break;
         
       }
-      else{
 
-        //st.WritePosEx(1, -2000, 15000,200);
-        //st.WritePosEx(2, 2000, 15000,200);
-        /*
-        if(st.ReadPos(ID)==-2000)
-        {
-          led2.ledOff();
-          test=0;
-        }*/
-        test=0;
-        //led2.ledOff(); 
-        
-        
-        
-      }
+     
       
       
       /*
@@ -328,7 +341,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  {
   //st.flagRx=1;
 
-  HAL_NVIC_DisableIRQ(USART6_IRQn);
+  //HAL_NVIC_DisableIRQ(USART6_IRQn);
  }
 }
 
