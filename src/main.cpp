@@ -27,7 +27,7 @@ static void MX_CAN1_Init(void);
 volatile uint16_t timerInt=0;
 volatile uint16_t timertest=0;
 SMS_STS st;
-//SCSCL st;
+
 
 int main(void)
 {
@@ -38,7 +38,6 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
-  //MX_USART3_UART_Init();
   MX_USART6_UART_Init();
   MX_CAN1_Init();
   
@@ -68,11 +67,7 @@ int main(void)
   u8 setAcc[2]={0};
   enum STEP_SERVO{MOVE_1, READ_M1, MOVE_2,READ_M2};
   STEP_SERVO step=MOVE_1;
-  /*
-  st.unLockEprom(1); //Unlock EPROM-SAFE
-  st.writeByte(1, SMS_STS_ID, 2);//Change ID
-  st.LockEprom(2); // Lock EPROM-SAFE
-  */
+  
 
   //st.WritePosEx(ID, 2000, 1500, 100);
   //st.WheelMode(ID,0);
@@ -129,23 +124,6 @@ int main(void)
           break;
         
       }
-
-     
-      
-      
-      /*
-      if(test==0)
-      {
-        ID = st.Ping(1);//If you ping the servo with that ID and receive no response, it will return -1.
-        test4= st.Error;
-        if(ID!=-1){
-          led2.ledOn();
-          test=1;
-        }else{
-          if(test==0)
-            led2.ledOff();
-        }
-      }*/
       
       
     }

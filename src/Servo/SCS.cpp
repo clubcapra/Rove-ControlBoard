@@ -29,8 +29,16 @@ SCS::SCS(u8 End, u8 Level)
 	Error = 0;
 }
 
-// one 16-digit number split into two 8-digit numbers
-// DataL is low, DataH is high
+
+/**
+ * @brief Converts host data to SCS data.
+ *
+ * This function takes the host data and converts it to SCS data format.
+ *
+ * @param DataL Pointer to the lower byte of the SCS data.
+ * @param DataH Pointer to the higher byte of the SCS data.
+ * @param Data The host data to be converted.
+ */
 void SCS::Host2SCS(u8 *DataL, u8* DataH, u16 Data)
 {
 	if(End){
@@ -42,8 +50,14 @@ void SCS::Host2SCS(u8 *DataL, u8* DataH, u16 Data)
 	}
 }
 
-// combination of two 8-digit numbers into one 16-digit number
-// DataL is low, DataH is high
+
+/**
+ * Converts the given low and high data bytes to a 16-bit unsigned integer and returns it.
+ *
+ * @param DataL The low byte of the data.
+ * @param DataH The high byte of the data.
+ * @return The converted 16-bit unsigned integer.
+ */
 u16 SCS::SCS2Host(u8 DataL, u8 DataH)
 {
 	u16 Data;
@@ -59,6 +73,16 @@ u16 SCS::SCS2Host(u8 DataL, u8 DataH)
 	return Data;
 }
 
+
+/**
+ * Writes data to the specified memory address of a servo.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to write the data to.
+ * @param nDat Pointer to the data buffer.
+ * @param nLen The length of the data buffer.
+ * @param Fun The function code.
+ */
 void SCS::writeBuf(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen, u8 Fun)
 {
 	u8 msgLen = 2;
@@ -90,8 +114,16 @@ void SCS::writeBuf(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen, u8 Fun)
 	writeSCS(~CheckSum);
 }
 
-// general write command.
-// the ID of the servo, the memory address in memory table, the data to write, the length of data
+
+/**
+ * Writes data to the specified memory address of a servo.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to write the data to.
+ * @param nDat Pointer to the data to be written.
+ * @param nLen The length of the data to be written.
+ * @return Returns 1 if ack received, otherwise returns 0.
+ */
 int SCS::genWrite(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen)
 {
 	rFlushSCS();
@@ -100,8 +132,17 @@ int SCS::genWrite(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen)
 	return Ack(ID);
 }
 
-// write asynchronously.
-// the ID of the servo，the memory address in memory table，the data to write，the length of data
+
+
+/**
+ * Writes data to the specified memory address of a servo register.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address of the servo register.
+ * @param nDat Pointer to the data to be written.
+ * @param nLen The length of the data to be written.
+ * @return Returns 1 if ack received, otherwise returns 0.
+ */
 int SCS::regWrite(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen)
 {
 	rFlushSCS();
@@ -110,9 +151,13 @@ int SCS::regWrite(u8 ID, u8 MemAddr, u8 *nDat, u8 nLen)
 	return Ack(ID);
 }
 
-// the trigger command for regWrite()
-// call this function to start the regWrite() command
-// ID: the ID of the servo
+
+/**
+ * Writes a register action for the specified ID.
+ *
+ * @param ID The ID of the register action to write.
+ * @return Returns 1 if ack received, otherwise returns 0.
+ */
 int SCS::RegWriteAction(u8 ID)
 {
 	rFlushSCS();
@@ -121,9 +166,19 @@ int SCS::RegWriteAction(u8 ID)
 	return Ack(ID);
 }
 
-// write synchronously.
-// the list of servo IDs, the length(number) of the ID list, the memory address in memory table,
-// the data to write, the length of data.
+
+
+/**
+ * @brief Writes data to multiple servos simultaneously.
+ *
+ * This function is used to write data to multiple servos simultaneously using the Sync Write instruction.
+ *
+ * @param ID An array of servo IDs to write data to.
+ * @param IDN The number of servos to write data to.
+ * @param MemAddr The memory address to write the data to.
+ * @param nDat A pointer to the data to be written.
+ * @param nLen The length of the data to be written.
+ */
 void SCS::syncWrite(u8 ID[], u8 IDN, u8 MemAddr, u8 *nDat, u8 nLen)
 {
 	//rFlushSCS();
@@ -153,6 +208,15 @@ void SCS::syncWrite(u8 ID[], u8 IDN, u8 MemAddr, u8 *nDat, u8 nLen)
 	wFlushSCS();
 }
 
+
+/**
+ * @brief Writes a byte of data to a specific memory address of a servo.
+ * 
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to write the data to.
+ * @param bDat The byte of data to write.
+ * @return Returns 1 if ack received, otherwise returns 0.
+ */
 int SCS::writeByte(u8 ID, u8 MemAddr, u8 bDat)
 {
 	rFlushSCS();
@@ -161,6 +225,15 @@ int SCS::writeByte(u8 ID, u8 MemAddr, u8 bDat)
 	return Ack(ID);
 }
 
+
+/**
+ * Writes a word (16-bit value) to the specified memory address of a servo with the given ID.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to write the word to.
+ * @param wDat The word (16-bit value) to write.
+ * @return Returns 1 if ack received, otherwise returns 0.
+ */
 int SCS::writeWord(u8 ID, u8 MemAddr, u16 wDat)
 {
 	u8 bBuf[2]={0};
@@ -171,8 +244,17 @@ int SCS::writeWord(u8 ID, u8 MemAddr, u16 wDat)
 	return Ack(ID);
 }
 
-// read command
-// the ID of servo, the memory address in memory table, the return data, the length of data
+
+
+/**
+ * Reads data from the specified memory address of a servo with the given ID.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to read from.
+ * @param nData Pointer to the buffer where the read data will be stored.
+ * @param nLen The number of bytes to read.
+ * @return size of data read, 0 if failed.
+ */
 int SCS::Read(u8 ID, u8 MemAddr, u8 *nData, u8 nLen)
 {
 
@@ -222,7 +304,14 @@ int SCS::Read(u8 ID, u8 MemAddr, u8 *nData, u8 nLen)
 	return size;
 }
 
-// read 1 byte from servo, return -1 when timeout
+
+/**
+ * Reads a byte from the specified memory address of the servo with the given ID.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to read from.
+ * @return The byte value read from the specified memory address and -1 when error.
+ */
 int SCS::readByte(u8 ID, u8 MemAddr)
 {
 	u8 bDat;
@@ -235,6 +324,14 @@ int SCS::readByte(u8 ID, u8 MemAddr)
 }
 
 // read 2 byte from servo, return -1 when timeout
+
+/**
+ * Reads a word (2 bytes) from the specified memory address of the servo with the given ID.
+ *
+ * @param ID The ID of the servo.
+ * @param MemAddr The memory address to read from.
+ * @return The value read from the memory address in 16 bit.
+ */
 int SCS::readWord(u8 ID, u8 MemAddr)
 {	
 	u8 nDat[2];
@@ -247,7 +344,14 @@ int SCS::readWord(u8 ID, u8 MemAddr)
 	return wDat;
 }
 
-// Ping command, return the ID of servo, return -1 when timeout.
+
+
+/**
+ * Sends a ping command to the specified servo ID.
+ *
+ * @param ID The ID of the servo to ping.
+ * @return Returns an integer value indicating the status of the ping command.
+ */
 int	SCS::Ping(u8 ID)
 {
 	
@@ -284,34 +388,32 @@ int	SCS::Ping(u8 ID)
 	
 }
 
+/**
+ * @brief Checks the head of the data.
+ *
+ * This function checks the head of the data represented by the given unsigned character array.
+ *
+ * @param nDat The unsigned character array representing the data.
+ * @return 1 if the head is correct, otherwise 0.
+ */
 int SCS::checkHead(unsigned char *nDat)
 {
 	
 	if(nDat[0]!=0xff && nDat[1]!=0xff){
 		return 0;
 	}
-	/*
-	u8 bDat;
-	u8 bBuf[2] = {0, 0};
-	u8 Cnt = 0;
-	while(1){
-		
-		if(!readSCS(&bDat, 1)){
-			return 0;
-		}
-		bBuf[1] = bBuf[0];
-		bBuf[0] = bDat;
-		if(bBuf[0]==0xff && bBuf[1]==0xff){
-			break;
-		}
-		Cnt++;
-		if(Cnt>10){
-			return 0;
-		}
-	}*/
+	
 	return 1;
 }
 
+/**
+ * @brief Sends an acknowledgment to the specified ID.
+ *
+ * This function sends an acknowledgment to the specified ID.
+ *
+ * @param ID The ID to send the acknowledgment to.
+ * @return An integer representing the status of the acknowledgment.
+ */
 int	SCS::Ack(u8 ID)
 {
 	Error = 0;
@@ -341,6 +443,22 @@ int	SCS::Ack(u8 ID)
 	return 1;
 }
 
+
+/**
+ * @brief Sends a synchronous read packet to multiple servo motors.
+ * 
+ * NOT TESTED
+ * 
+ * This function sends a synchronous read packet to multiple servo motors
+ * specified by the given array of servo IDs. The packet requests the data
+ * from the specified memory address with the given length.
+ *
+ * @param ID An array of servo IDs to send the packet to.
+ * @param IDN The number of servo IDs in the array.
+ * @param MemAddr The memory address to read from.
+ * @param nLen The length of the data to read.
+ * @return An integer representing the success or failure of the operation.
+ */
 int	SCS::syncReadPacketTx(u8 ID[], u8 IDN, u8 MemAddr, u8 nLen)
 {
 	syncReadRxPacketLen = nLen;
@@ -362,6 +480,21 @@ int	SCS::syncReadPacketTx(u8 ID[], u8 IDN, u8 MemAddr, u8 nLen)
 	return nLen;
 }
 
+
+/**
+ * @brief Reads a packet from the specified servo ID using synchronous communication.
+ * 
+ * NOT TESTED
+ * 
+ * This function reads a packet from the servo with the given ID using synchronous communication.
+ * The received data is stored in the provided buffer `nDat`.
+ * 
+ * @param ID The ID of the servo to read from.
+ * @param nDat Pointer to the buffer where the received data will be stored.
+ * 
+ * @return An integer value indicating the success or failure of the operation.
+ *         A return value of 0 indicates success, while a non-zero value indicates failure.
+ */
 int SCS::syncReadPacketRx(u8 ID, u8 *nDat)
 {
 	syncReadRxPacket = nDat;
@@ -389,6 +522,17 @@ int SCS::syncReadPacketRx(u8 ID, u8 *nDat)
 	return syncReadRxPacketLen;
 }
 
+
+/**
+ * @brief Reads a byte from the received packet during synchronous read operation.
+ * 
+ * NOT TESTED
+ * 
+ * This function is used to read a single byte from the received packet during a synchronous read operation.
+ * It is typically called within a loop to read all the bytes of the packet.
+ * 
+ * @return The byte read from the received packet.
+ */
 int SCS::syncReadRxPacketToByte()
 {
 	if(syncReadRxPacketIndex>=syncReadRxPacketLen){
@@ -397,6 +541,18 @@ int SCS::syncReadRxPacketToByte()
 	return syncReadRxPacket[syncReadRxPacketIndex++];
 }
 
+
+/**
+ * @brief Reads the received packet and converts it to a word value.
+ * 
+ * NOT TESTED
+ * 
+ * This function reads the received packet and converts it to a word value.
+ * The `negBit` parameter specifies the negative bit value to be used in the conversion.
+ * 
+ * @param negBit The negative bit value to be used in the conversion.
+ * @return The converted word value.
+ */
 int SCS::syncReadRxPacketToWrod(u8 negBit)
 {
 	if((syncReadRxPacketIndex+1)>=syncReadRxPacketLen){
