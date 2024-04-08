@@ -215,11 +215,7 @@ static void MX_GPIO_Init(void)
  
 }
 
-/**
-  * @brief CAN1 Initialization Function
-  * @param None
-  * @retval None
-  */
+
 static void MX_CAN1_Init(void)
 {
 
@@ -447,9 +443,9 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim)
     PA9     ------> TIM1_CH2
     */
     GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -472,6 +468,7 @@ static void MX_DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 
 }
+
 
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -511,9 +508,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-  
+  if(htim == &htim2)
+  {
     timerInt++;
+  }
+    
 }
+
 
 void Error_Handler(void)
 {
