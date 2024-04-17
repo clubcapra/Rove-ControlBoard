@@ -5,6 +5,9 @@
 #include "../include/LED.h"
 #include "../include/Servo/SMS_STS.h"
 #include "stdio.h"
+#include "api.h"
+#include "adapterCBRove.h"
+#include "Servo/Servo.h"
 
 CAN_HandleTypeDef hcan1;
 
@@ -20,6 +23,7 @@ CAN_RxHeaderTypeDef RxHeader;
 CAN_TxHeaderTypeDef TxHeader;
 
 
+
 void SystemClock_Config(void);
 
 
@@ -31,6 +35,12 @@ static void MX_USART6_UART_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_TIM1_Init(void);
 
+volatile bool dataReady = false;
+Buffer TxBuff = Buffer(MAX_DECODED_SIZE*2);
+Buffer RxBuff = Buffer(MAX_DECODED_SIZE*2);
+void sendCallback(uint8_t* buff, size_t length);
+void onDataRevieved(uint8_t* buff, size_t length);
+void handleCommand();
 
 volatile uint16_t timerInt=0;
 volatile uint16_t timertest=0;
@@ -84,78 +94,16 @@ int main(void)
   canTxData[0] = 50;  
   canTxData[1] = 0xAA;
   
- 
   int ID=0x01;
-  u8 id[2]={0x01,0x02};
-  int positionServo[2]={0};
-  s16 setPosition[2]={0};
-  u16 setSpeed[2]={0};
-  u8 setAcc[2]={0};
-  enum STEP_SERVO{MOVE_1, READ_M1, MOVE_2,READ_M2};
-  STEP_SERVO step=MOVE_1;
+  AdapterCBRove.init(ID, gpioC, 0, 1, 2, st);
   
+  CommandManager.setCommands(commands, COMMANDS_COUNT);
+  CommandManager.setSendCB(&sendCallback);
 
-  //st.WritePosEx(ID, 2000, 1500, 100);
-  //st.WheelMode(ID,0);
-  //HAL_Delay(1000);
-  //st.WriteSpe(ID, 10000, 100);
-     
   while (1)
   {
-    
-
-    //Temps de 2,2 s 
-    if(timerInt >= 10)
-		{
-      timerInt=0;
-      
-      //st.FeedBack(1);
-      //st.ReadMove(1);
-      
-      switch(step)
-      {
-        case MOVE_1:
-          //st.WritePosEx(ID, 2048, 150, 200);
-          setPosition[0]=2048;
-          setPosition[1]=2048;
-          setSpeed[0]=1500;
-          setSpeed[1]=1500;
-          setAcc[0]=150;
-          setAcc[1]=150;
-          st.SyncWritePosEx(id,2,setPosition,setSpeed,setAcc);
-          step=READ_M1;
-          break;
-        case READ_M1:
-        positionServo[0]=st.ReadPos(id[0]);
-        positionServo[1]=st.ReadPos(id[1]);
-          if((positionServo[0]<=2058 && positionServo[0]>=2038)&&(positionServo[1]<=2058 && positionServo[1]>=2038))//
-            step=MOVE_2;
-          break;
-        case MOVE_2:
-          setPosition[0]=-2048;
-          setPosition[1]=-2048;
-          setSpeed[0]=1500;
-          setSpeed[1]=1500;
-          setAcc[0]=150;
-          setAcc[1]=150;
-          st.SyncWritePosEx(id,2,setPosition,setSpeed,setAcc);
-          //st.WritePosEx(ID, -2048, 150, 200);
-          step=READ_M2;
-          break;
-        case READ_M2:
-          positionServo[0]=st.ReadPos(id[0]);
-          positionServo[1]=st.ReadPos(id[1]);
-          if((positionServo[0]<=5 && positionServo[0]>=0)&&(positionServo[1]<=5 && positionServo[1]>=0))
-            step=MOVE_1;
-          break;
-        
-      }
-      
-      
-    }
-
-    
-    
+    handleCommand();
+    AdapterCBRove.task();
   }
 }
 
@@ -488,7 +436,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   {
     Error_Handler();
   }
-
+  
   if ((RxHeader.DLC == 2))
   {
 	  datacheck = 1;
@@ -515,6 +463,48 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     
 }
 
+void sendCallback(uint8_t* buff, size_t length)
+{
+  // TODO Implement canbus send
+}
+
+void onDataRevieved(uint8_t *buff, size_t length)
+{
+  RxBuff.write(buff, length);
+  dataReady = true;
+}
+
+void handleCommand()
+{
+  if (!dataReady) return;
+
+  if (!CommandManager.handleCommand(RxBuff))
+  {
+    switch (CommandManager.status())
+    {
+    case _CommandManager::CMD_ID_OUT_OF_RANGE: // Command id out of range
+      // This can either be from a transmission issue or from an API version mismatch
+      while (RxBuff.available()) RxBuff.read();
+      break;
+    case _CommandManager::CALLBACK_NULL: // The sendCB callback is null
+      // You forgot to set the callback: CommandManager.setSendCB(&sendCallback)
+      Error_Handler();
+      break;
+    case _CommandManager::PARAM_SIZE_MISMATCH: // Not enough data to decode parameter
+      // This can simply be because the message is incomplete
+      break;
+    case _CommandManager::PEEK_ID_ERROR:
+    case _CommandManager::READ_ID_ERROR:
+    case _CommandManager::READ_PARAM_ERROR:
+      // These are problems that occur while reading the buffer
+      while (RxBuff.available()) RxBuff.read();
+      break;
+    default:
+      break;
+    }
+  }
+  dataReady = false;
+}
 
 void Error_Handler(void)
 {
