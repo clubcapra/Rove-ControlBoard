@@ -9,7 +9,7 @@ struct Servo
     volatile u8 &id;
     volatile int &position;
     volatile s16 &setPosition;
-    volatile u16 &setSpeed;
+    volatile s16 &setSpeed;
     volatile u8 &setAcc;
 };
 

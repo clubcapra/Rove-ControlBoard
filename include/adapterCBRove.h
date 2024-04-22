@@ -60,7 +60,7 @@ private:
     volatile u8 mIDs[2] = {0};
     volatile int mServoPositions[2] = {0};
     volatile s16 mSetPositions[2] = {0};
-    volatile u16 mSetSpeeds[2] = {0};
+    volatile s16 mSetSpeeds[2] = {0};
     volatile u8 mSetAccs[2] = {0};
     Servo mServoX = {mIDs[0], mServoPositions[0], mSetPositions[0], mSetSpeeds[0], mSetAccs[0]};
     volatile bool mLastXAck = true;

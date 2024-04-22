@@ -39,14 +39,15 @@ void AdapterCBRoveClass::task()
     
     u8 IDs[2] = {mIDs[0], mIDs[1]};
     s16 SetPositions[2] = {mSetPositions[0], mSetPositions[1]};
-    u16 SetSpeeds[2] = {mSetSpeeds[0], mSetSpeeds[1]};
+    s16 SetSpeeds[2] = {mSetSpeeds[0], mSetSpeeds[1]};
+    u16 SetAbsSpeeds[2] = {abs(mSetSpeeds[0]), abs(mSetSpeeds[1])};
     u8 SetAccs[2] = {mSetAccs[0], mSetAccs[1]};
 
     // Write values
     switch (mControlMode)
     {
     case SCMPosition:
-        mST->SyncWritePosEx(IDs, 2, SetPositions, SetSpeeds, SetAccs);
+        mST->SyncWritePosEx(IDs, 2, SetPositions, SetAbsSpeeds, SetAccs);
         break;
     case SCMSpeed:
         mLastXAck = mST->WriteSpe(mIDs[0], mSetSpeeds[0], mSetAccs[0]);
