@@ -104,6 +104,10 @@ int main(void)
   {
     handleCommand();
     AdapterCBRove.task();
+    if (TxBuff.available())
+    {
+      // TODO Send can data
+    }
   }
 }
 
@@ -465,7 +469,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 
 void sendCallback(uint8_t* buff, size_t length)
 {
-  // TODO Implement canbus send
+  TxBuff.write(buff, length);
 }
 
 void onDataRevieved(uint8_t *buff, size_t length)
