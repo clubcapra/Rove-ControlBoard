@@ -27,6 +27,40 @@ GPIO::GPIO(volatile uint32_t* gpioBase)
 }
 GPIO::~GPIO() {}
 
+GPIO::GPIO(const GPIO& gpio)
+{
+	_gpioBase = gpio._gpioBase;
+	RCC_AHB1ENR |= (1 << (((uint32_t)(gpio._gpioBase )- (uint32_t)(0x40020000UL))/(uint32_t)(0x400UL)));
+
+	GPIO_MODER = gpio.GPIO_MODER;
+	GPIO_OTYPER = gpio.GPIO_OTYPER;
+	GPIO_OSPEEDR = gpio.GPIO_OSPEEDR;
+	GPIO_PUPDR = gpio.GPIO_PUPDR;
+	GPIO_IDR = gpio.GPIO_IDR;
+	GPIO_ODR = gpio.GPIO_ODR;
+	GPIO_BSRR = gpio.GPIO_BSRR;
+	GPIO_LCKR = gpio.GPIO_LCKR;
+	GPIO_AFR[1] = gpio.GPIO_AFR[1];
+	GPIO_AFR[2] = gpio.GPIO_AFR[2];
+}	
+
+GPIO& GPIO::operator=(const GPIO& gpio)
+{
+	_gpioBase = gpio._gpioBase;
+	RCC_AHB1ENR |= (1 << (((uint32_t)(gpio._gpioBase )- (uint32_t)(0x40020000UL))/(uint32_t)(0x400UL)));
+
+	GPIO_MODER = gpio.GPIO_MODER;
+	GPIO_OTYPER = gpio.GPIO_OTYPER;
+	GPIO_OSPEEDR = gpio.GPIO_OSPEEDR;
+	GPIO_PUPDR = gpio.GPIO_PUPDR;
+	GPIO_IDR = gpio.GPIO_IDR;
+	GPIO_ODR = gpio.GPIO_ODR;
+	GPIO_BSRR = gpio.GPIO_BSRR;
+	GPIO_LCKR = gpio.GPIO_LCKR;
+	GPIO_AFR[1] = gpio.GPIO_AFR[1];
+	GPIO_AFR[2] = gpio.GPIO_AFR[2];
+	return *this;
+}	
 
 GPIO& GPIO::setPinMode (uint32_t pinNum , Mode mode)
 {

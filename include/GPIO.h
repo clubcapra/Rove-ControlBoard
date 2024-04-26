@@ -24,12 +24,16 @@ enum Pad {NO_PUPD = 0b00, PULL_UP = 0b01, PULL_DOWN = 0b10};
 class GPIO
 {
 public:
-	// GPIO();
+	 GPIO();
 	/**
 	 * @fn  GPIO(volatile uint32_t*) Initialisation de la GPIO
 	 * @param gpioBase addresse de début du gpio désirer
 	 */
 	GPIO(volatile uint32_t* gpioBase);
+
+	GPIO(const GPIO& gpio);
+
+	GPIO &operator=(const GPIO& gpio);
 
 	/**
 	 * @fn  ~GPIO() destructeur du gpio
