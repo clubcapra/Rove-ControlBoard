@@ -72,10 +72,12 @@ int main(void)
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_CAN_Start(&hcan1);
+  /*
   if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
   {
 	  Error_Handler();
   }
+  */
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x446;
   TxHeader.RTR = CAN_RTR_DATA;
@@ -96,22 +98,23 @@ int main(void)
   
 
   //st.WritePosEx(ID, 2000, 1500, 100);
-  //st.WheelMode(ID,0);
-  //HAL_Delay(1000);
-  //st.WriteSpe(ID, 10000, 100);
-     
+  st.WheelMode(1,true);
+  HAL_Delay(1000);
+  st.WriteSpe(1, 100, 0);
+  HAL_Delay(1000);
   while (1)
   {
     
 
     //Temps de 2,2 s 
-    if(timerInt >= 10)
+    if(timerInt >= 1)
 		{
       timerInt=0;
       
       //st.FeedBack(1);
       //st.ReadMove(1);
-      
+      st.ReadPos(1);
+      /*
       switch(step)
       {
         case MOVE_1:
@@ -149,7 +152,7 @@ int main(void)
             step=MOVE_1;
           break;
         
-      }
+      }*/
       
       
     }

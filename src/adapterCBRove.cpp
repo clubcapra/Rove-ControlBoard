@@ -3,11 +3,11 @@
 
 #include "../include/adapterCBRove.h"
 
-//@TODO: Test mode servo wheel and if we can see the position
-//@TODO: Test PID controller for the servo
-//@TODO: Recast and assing the speed to the servo after PID
-//@TODO: Set speed to the servo after test of mode wheel
-//@TODO: ADD mode selection if needed for servo between wheel and position mode
+
+
+
+
+
 
 
 AdapterCBRove::AdapterCBRove()
@@ -45,94 +45,202 @@ void AdapterCBRove::init()
      gpioC.writePin(PIN_GPIO_2, 0);
      gpioC.writePin(PIN_GPIO_3, 0);
 
-     //@TODO: Initialize the servo and test PID and if we can see the position in wheel mode
-     //@TODO: Initialize the PID controller for the servo
-     //@TODO: Set MAX and MIN position for the servo
+     setMinMaxServoX(4095, -4095);
+
+     //@todo: set min max servo Y
+     setMinMaxServoY(4095, -4095);
+
+
+     mInitialized = true;
 
 }
 
 
 void AdapterCBRove::task()
 {
-     servoPositionX = servo.ReadPos(SERVO_X);
-     //servoSpeedX=
-     pidX.calculate(servoPositionX, 0.1);
-     //@TODO: Set speed to the servo after test of mode wheel
-     servoPositionY = servo.ReadPos(SERVO_Y);
-     //servoSpeedY=
-     pidX.calculate(servoPositionX, 0.1);
-     //@TODO: Set speed to the servo after test of mode wheel
+     if (!checkInitialized()) return;
+     mServoPositions[0] = st.ReadPos(mIDs[0]);
+     mServoPositions[1] = st.ReadPos(mIDs[1]);
+     
+     setPositions[0] = mSetPositions[0];
+     setPositions[1] = mSetPositions[1];
+     setSpeeds[0] = mSetSpeeds[0];
+     setSpeeds[1] = mSetSpeeds[1];
+     setAccs[0] = mSetAccs[0];
+     setAccs[1] = mSetAccs[1];
+
+     switch (mControlMode)
+     {
+     case 0:
+          if(mServoPositions[0]<=mSetPositions[0]+5 && mServoPositions[0]>=mSetPositions[0]-5
+          && mServoPositions[1]<=mSetPositions[1]+5 && mServoPositions[1]>=mSetPositions[1]-5);
+          else
+               st.WritePosEx(mIDs[0], setPositions[0], setSpeeds[0], setAccs[0]);
+          break;
+     case 1:
+
+          if(mServoPositions[0] >= mMaxPosX[0] || mServoPositions[0] <= mMaxPosX[1])
+          {
+               setSpeeds[0] = 0;
+               setAccs[0] = 0;
+          }
+          st.WriteSpe(mIDs[0], setSpeeds[0], setAccs[0]);
+          if(mServoPositions[1] >= mMaxPosY[0] || mServoPositions[1] <= mMaxPosY[1])
+          {
+               setSpeeds[1] = 0;
+               setAccs[1] = 0;
+          }
+          st.WriteSpe(mIDs[1], setSpeeds[1], setAccs[1]);
+          break;
+     default:
+          break;
+     } 
+
+     
 
 }
 
-void AdapterCBRove::setServoPosition(int positionX, int positionY)
+void AdapterCBRove::setMinMaxServoX(s16 max, s16 min)
 {
-     pidX.setGoalPosition(positionX);
-     //pidX.reset();
-     pidY.setGoalPosition(positionY);
-     //pidY.reset();
+     mMaxPosX[0] = max;
+     mMaxPosX[1] = min;
 }
 
-void AdapterCBRove::setServoSpeed(int speedX, int speedY)
+void AdapterCBRove::setMinMaxServoY(s16 max, s16 min)
 {
-     //@TODO: ASK if we need to set mode from the jetson
-     /*
-     servo.WheelMode(SERVO_X, true);
-     servo.WheelMode(SERVO_Y, true);
-     servo.WriteSpe(SERVO_X, speedX);
-     servo.WriteSpe(SERVO_Y, speedY);
-     */
+     mMaxPosY[0] = max;
+     mMaxPosY[1] = min;
 }
 
-void AdapterCBRove::setServoPositionZero()
+bool AdapterCBRove::setServoPosition(int positionX, int positionY)
 {
-     pidX.setGoalPosition(0);
-     //pidX.reset();
-     pidY.setGoalPosition(0);
-     //pidY.reset();
+     if (!checkInitialized()) return false;
+     if(positionX >= mMaxPosX[0] )
+          mSetPositions[0]=mMaxPosX[0];
+     else if(positionX < mMaxPosX[1])
+          mSetPositions[0]= mMaxPosX[1];
+     else
+          mSetPositions[0] = positionX;
+     
+     if(positionY >=  mMaxPosY[0] )     
+          mSetPositions[1]=mMaxPosY[0];
+     else if(positionY < mMaxPosY[1])
+          mSetPositions[1]=mMaxPosY[1];
+     else
+          mSetPositions[1] = positionY;
+
+     return true;
 }
+
+bool AdapterCBRove::setServoPositionZero()
+{
+     return setServoPosition(0,0);
+}
+
+bool AdapterCBRove::setServoSpeed(int speedX, int speedY)
+{
+     if (!checkInitialized()) return false;
+     mSetSpeeds[0] = speedX;
+     mSetSpeeds[1] = speedY;
+     return true;
+}
+
+bool AdapterCBRove::setServoAccX(u8 acc)
+{
+     if (!checkInitialized()) return false;
+     mSetAccs[0] = acc;
+     return true;
+}
+
+bool AdapterCBRove::setServoAccY(u8 acc)
+{
+     if (!checkInitialized()) return false;
+     mSetAccs[1] = acc;
+     return true;
+}
+
+bool AdapterCBRove::setServoMode(bool modeX,bool modeY)
+{
+     if (!checkInitialized()) return false;
+     st.WheelMode(SERVO_X, modeX);
+     st.WheelMode(SERVO_Y, modeY);
+     mServoModes[0] = modeX;
+     mServoModes[1] = modeY;
+     return true;
+}
+
+bool AdapterCBRove::getServoMode()
+{
+     if (!checkInitialized()) return false;
+     return mServoModes[0] && mServoModes[1];
+}
+
 
 int AdapterCBRove::getServoPositionX()
 {
-     return servoPositionX;
+     if (!checkInitialized()) return 0;
+     return mServoPositions[0];
 }
 
 int AdapterCBRove::getServoPositionY()
 {
-     return servoPositionY;
+     if (!checkInitialized()) return 0;
+     return mServoPositions[1];
 }
 
 int AdapterCBRove::getServoSpeedX()
 {
-     return servoSpeedX;
+     if (!checkInitialized()) return 0;
+     return mSetSpeeds[0];
 }
 
 int AdapterCBRove::getServoSpeedY()
 {
-     return servoSpeedY;
+     if (!checkInitialized()) return 0;
+     return mSetSpeeds[1];
+}
+
+u8 AdapterCBRove::getServoAccX()
+{
+    if (!checkInitialized()) return 0;
+    return mSetAccs[0];
+}
+u8 AdapterCBRove::getServoAccY()
+{
+    if (!checkInitialized()) return 0;
+    return mSetAccs[1];
 }
 
 
-void AdapterCBRove::setLEDFront(bool state)
+bool AdapterCBRove::setLEDFront(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioC.writePin(PIN_LED_AVANT, state);
+     return true;
 }
-void AdapterCBRove::setLEDBack(bool state)
+bool AdapterCBRove::setLEDBack(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioB.writePin(PIN_LED_ARRIERE, state);
+     return true;
 }
-void AdapterCBRove::setLEDStrobe(bool state)
+bool AdapterCBRove::setLEDStrobe(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioA.writePin(PIN_STROBE, state);
+     return true;
 }
 
-void AdapterCBRove::setLockWinch(bool state)
+bool AdapterCBRove::setLockWinch(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioA.writePin(PIN_wINCH_lOCK, state);
+     return true;
 }
 
 bool AdapterCBRove::getLEDFront()
 {
+     if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_LED_AVANT))
      {
      case HIGH:
@@ -148,6 +256,7 @@ bool AdapterCBRove::getLEDFront()
 }
 bool AdapterCBRove::getLEDBack()
 {
+     if (!checkInitialized()) return false;
      switch (gpioB.readPin(PIN_LED_ARRIERE))
      {
      case HIGH:
@@ -159,12 +268,13 @@ bool AdapterCBRove::getLEDBack()
      default:
           break;
      }
-    return false;
+     return false;
     
 }
 bool AdapterCBRove::getLEDStrobe()
 {
-    switch (gpioA.readPin(PIN_STROBE))
+     if (!checkInitialized()) return false;
+     switch (gpioA.readPin(PIN_STROBE))
      {
      case HIGH:
           return true;
@@ -180,7 +290,8 @@ bool AdapterCBRove::getLEDStrobe()
 
 bool AdapterCBRove::getLockWinch()
 {
-    switch (gpioA.readPin(PIN_wINCH_lOCK))
+     if (!checkInitialized()) return false;
+     switch (gpioA.readPin(PIN_wINCH_lOCK))
      {
      case HIGH:
           return true;
@@ -196,20 +307,27 @@ bool AdapterCBRove::getLockWinch()
 
 
 
-void AdapterCBRove::setGPIO1(bool state)
+bool AdapterCBRove::setGPIO1(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioC.writePin(PIN_GPIO_1, state);
+     return true;
 }
-void AdapterCBRove::setGPIO2(bool state)
+bool AdapterCBRove::setGPIO2(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioC.writePin(PIN_GPIO_2, state);
+     return true;
 }
-void AdapterCBRove::setGPIO3(bool state)
+bool AdapterCBRove::setGPIO3(bool state)
 {
+     if (!checkInitialized()) return false;
      gpioC.writePin(PIN_GPIO_3, state);
+     return true;
 }
 bool AdapterCBRove::getGPIO1()
 {
+     if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_GPIO_1))
       {
       case HIGH:
@@ -226,6 +344,7 @@ bool AdapterCBRove::getGPIO1()
 }
 bool AdapterCBRove::getGPIO2()
 {
+     if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_GPIO_2))
       {
       case HIGH:
@@ -241,6 +360,7 @@ bool AdapterCBRove::getGPIO2()
 }
 bool AdapterCBRove::getGPIO3()
 {
+     if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_GPIO_3))
       {
       case HIGH:
@@ -253,4 +373,46 @@ bool AdapterCBRove::getGPIO3()
             break;
       }
      return false;
+}
+
+bool AdapterCBRove::setControlMode(uint32_t mode)
+{
+    if (!checkInitialized()) return false;
+    mControlMode = mode;
+    switch (mControlMode)
+    {
+     case 0:
+          setServoMode(0,0);
+          break;
+     case 1:
+          setServoMode(1,1);
+          break;
+     
+     default:
+          break;
+    }
+    return true;
+}
+
+uint32_t AdapterCBRove::getControlMode()
+{
+    if (!checkInitialized()) return 0;
+    return mControlMode;
+}
+Servo &AdapterCBRove::getServoX()
+{
+    return mServoX;
+}
+
+Servo &AdapterCBRove::getServoY()
+{
+    return mServoY;
+}
+
+bool AdapterCBRove::checkInitialized()
+{
+     if (mInitialized) 
+          return true;
+     else
+          return false;
 }
