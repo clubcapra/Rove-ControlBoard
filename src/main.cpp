@@ -114,6 +114,7 @@ int main(void)
       //st.FeedBack(1);
       //st.ReadMove(1);
       st.ReadPos(1);
+
       /*
       switch(step)
       {
@@ -154,6 +155,7 @@ int main(void)
         
       }*/
       
+
       
     }
 

@@ -51,7 +51,7 @@ public:
     bool setServoAccX(u8 acc);
     bool setServoAccY(u8 acc);
 
-    bool setServoMode(bool modeX,bool modeY); //1 = wheel mode, 0 = joint mode
+    bool setServoMode(bool mode); //1 = wheel mode, 0 = joint mode
     bool getServoMode();
 
     int getServoPositionX();
