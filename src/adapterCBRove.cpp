@@ -15,7 +15,7 @@ AdapterCBRove::AdapterCBRove()
      gpioC=GPIO((uint32_t *)(0x40020800UL));
      gpioB=GPIO((uint32_t *)(0x40020400UL));
      gpioA=GPIO((uint32_t *)(0x40020000UL));
-     
+     motorWhitch=WinchMotor(gpioA);
 }
 
 AdapterCBRove::~AdapterCBRove()
@@ -25,21 +25,22 @@ AdapterCBRove::~AdapterCBRove()
 
 void AdapterCBRove::init()
 {
+    
+
      gpioB.setPinMode(PIN_LED_ARRIERE,OUTPUT).setPinOutputType(PIN_LED_ARRIERE, PUSH_PULL).setPinSpeed(PIN_LED_ARRIERE, MEDIUM_SPEED).setPinPad(PIN_LED_ARRIERE,PULL_UP);
 	gpioC.setPinMode(PIN_LED_AVANT,OUTPUT).setPinOutputType(PIN_LED_AVANT, PUSH_PULL).setPinSpeed(PIN_LED_AVANT, MEDIUM_SPEED).setPinPad(PIN_LED_AVANT,PULL_UP);
 	gpioA.setPinMode(PIN_STROBE,OUTPUT).setPinOutputType(PIN_STROBE, PUSH_PULL).setPinSpeed(PIN_STROBE, MEDIUM_SPEED).setPinPad(PIN_STROBE,PULL_UP);
-	gpioA.setPinMode(PIN_wINCH_lOCK,OUTPUT).setPinOutputType(PIN_wINCH_lOCK, PUSH_PULL).setPinSpeed(PIN_wINCH_lOCK, MEDIUM_SPEED).setPinPad(PIN_wINCH_lOCK,PULL_UP);
 	gpioC.setPinMode(PIN_GPIO_1,OUTPUT).setPinOutputType(PIN_GPIO_1, PUSH_PULL).setPinSpeed(PIN_GPIO_1, MEDIUM_SPEED).setPinPad(PIN_GPIO_1,PULL_UP);
 	gpioC.setPinMode(PIN_GPIO_2,OUTPUT).setPinOutputType(PIN_GPIO_2, PUSH_PULL).setPinSpeed(PIN_GPIO_2, MEDIUM_SPEED).setPinPad(PIN_GPIO_2,PULL_UP);
 	gpioC.setPinMode(PIN_GPIO_3,OUTPUT).setPinOutputType(PIN_GPIO_3, PUSH_PULL).setPinSpeed(PIN_GPIO_3, MEDIUM_SPEED).setPinPad(PIN_GPIO_3,PULL_UP);
-	
+
+	motorWhitch.init(PIN_WINCH_DIR1, PIN_WINCH_DIR2, PIN_WINCH_LOCK1, PIN_WINCH_LOCK2);
 
 
 
      gpioB.writePin(PIN_LED_ARRIERE, 0);
      gpioC.writePin(PIN_LED_AVANT, 0);
      gpioA.writePin(PIN_STROBE, 0);
-     gpioA.writePin(PIN_wINCH_lOCK, 0);
 
      gpioC.writePin(PIN_GPIO_1, 0);
      gpioC.writePin(PIN_GPIO_2, 0);
@@ -231,11 +232,62 @@ bool AdapterCBRove::setLEDStrobe(bool state)
      return true;
 }
 
-bool AdapterCBRove::setLockWinch(bool state)
+bool AdapterCBRove::setWinchState(uint8_t state)
 {
      if (!checkInitialized()) return false;
-     gpioA.writePin(PIN_wINCH_lOCK, state);
+     mWinchState = state;
+     switch (state)
+     {
+     case 1:
+          motorWhitch.winchMotorFreeWheel();
+          break;
+     case 2:
+          motorWhitch.winchMotorBreak();
+          break;
+     case 3:
+          motorWhitch.winchMotorReverse();
+          break;
+     case 4:
+          motorWhitch.winchMotorForward();
+          break;
+     default:
+          break;
+     }
      return true;
+}
+
+uint8_t AdapterCBRove::getWinchState()
+{
+     if (!checkInitialized()) return 0;
+     return mWinchState;
+}
+
+
+
+bool AdapterCBRove::setLockWinch1(bool state)
+{
+     if (!checkInitialized()) return false;
+     motorWhitch.setWinchLock1(state);
+     return true;
+}
+
+bool AdapterCBRove::setLockWinch2(bool state)
+{
+     if (!checkInitialized()) return false;
+     motorWhitch.setWinchLock2(state);
+     return true;
+}
+
+bool AdapterCBRove::getLockWinch1()
+{
+     if (!checkInitialized()) return false;
+     return motorWhitch.getWinchLock1();
+}
+
+bool AdapterCBRove::getLockWinch2()
+{
+     if (!checkInitialized()) return false;
+     return motorWhitch.getWinchLock2();
 }
 
 bool AdapterCBRove::getLEDFront()
@@ -288,22 +340,6 @@ bool AdapterCBRove::getLEDStrobe()
     return false;
 }
 
-bool AdapterCBRove::getLockWinch()
-{
-     if (!checkInitialized()) return false;
-     switch (gpioA.readPin(PIN_wINCH_lOCK))
-     {
-     case HIGH:
-          return true;
-          break;
-     case LOW:
-          return false;
-          break;
-     default:
-          break;
-     }
-    return false;
-}
 
 
 
@@ -416,3 +452,4 @@ bool AdapterCBRove::checkInitialized()
      else
           return false;
 }
+

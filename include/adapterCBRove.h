@@ -5,12 +5,18 @@
 #include "../include/GPIO.h"
 #include "../include/LED.h"
 #include "../include/Servo/servo.h"
+#include "../include/winchMotor.h"
 
 
 #define PIN_LED_AVANT 4
 #define PIN_LED_ARRIERE 4
 #define PIN_STROBE 15
-#define PIN_wINCH_lOCK 9
+
+#define PIN_WINCH_DIR1 3
+#define PIN_WINCH_DIR2 4
+#define PIN_WINCH_LOCK1 10
+#define PIN_WINCH_LOCK2 2
+
 
 #define PIN_GPIO_1 0
 #define PIN_GPIO_2 1
@@ -58,11 +64,17 @@ public:
     bool setLEDFront(bool state);
     bool setLEDBack(bool state);
     bool setLEDStrobe(bool state);
-    bool setLockWinch(bool state);
+    
     bool getLEDFront();
     bool getLEDBack();
     bool getLEDStrobe();
-    bool getLockWinch();
+
+    bool setWinchState(uint8_t state);
+    uint8_t getWinchState();
+    bool setLockWinch1(bool state);
+    bool setLockWinch2(bool state);
+    bool getLockWinch1();
+    bool getLockWinch2();
 
     bool setGPIO1(bool state);
     bool setGPIO2(bool state);
@@ -115,7 +127,8 @@ private:
     s16 mMaxPosX[2] = {0}; //0:max, 1:min
     s16 mMaxPosY[2] = {0}; //0:max, 1:min
 
-        
+    WinchMotor motorWhitch;
+    uint8_t mWinchState = 0;
     GPIO gpioC;
     GPIO gpioB;
     GPIO gpioA;
