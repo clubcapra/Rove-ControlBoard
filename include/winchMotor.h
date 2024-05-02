@@ -2,7 +2,7 @@
 
 #ifndef WINCHMOTOR_H
 #define WINCHMOTOR_H
-#include "stdio.h"
+#include <stdint.h>
 #include "GPIO.h"
 
 

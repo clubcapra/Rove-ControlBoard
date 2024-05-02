@@ -1,11 +1,13 @@
 
 
-#include "../include/main.h"
+#include "main.h"
 
-#include "../include/GPIO.h"
-#include "../include/LED.h"
-#include "../include/Servo/Servo.h"
-
+#include "GPIO.h"
+#include "LED.h"
+#include "stdio.h"
+#include "api.h"
+#include "adapterCBRove.h"
+#include "Servo/Servo.h"
 
 CAN_HandleTypeDef hcan1;
 
@@ -21,6 +23,7 @@ CAN_RxHeaderTypeDef RxHeader;
 CAN_TxHeaderTypeDef TxHeader;
 
 
+
 void SystemClock_Config(void);
 
 
@@ -32,6 +35,12 @@ static void MX_USART6_UART_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_TIM1_Init(void);
 
+volatile bool dataReady = false;
+Buffer TxBuff = Buffer(MAX_DECODED_SIZE*2);
+Buffer RxBuff = Buffer(MAX_DECODED_SIZE*2);
+void sendCallback(uint8_t* buff, size_t length);
+void onDataRevieved(uint8_t* buff, size_t length);
+void handleCommand();
 
 volatile uint16_t timerInt=0;
 volatile uint16_t timertest=0;
@@ -58,13 +67,6 @@ int main(void)
   MX_CAN1_Init();
   MX_TIM1_Init();
   
-  /*
-  ComServo *comServo = ComServo::getInstance();
-  comServo->setHuart(&huart6);
-  CServo servo1(1,40,3400);
-  //servo1.servoEnableWheelMode();
-  //servo1.servoSetServoPosition(200);*/
-  
   
   st.pSerial = &huart6;
 
@@ -87,19 +89,23 @@ int main(void)
   canTxData[0] = 50;  
   canTxData[1] = 0xAA;
   
+  int ID=0x01;
+  AdapterCBRove.init();
+  
+  CommandManager.setCommands(commands, COMMANDS_COUNT);
+  CommandManager.setSendCB(&sendCallback);
 
   while (1)
   {
     
 
     //Temps de 2,2 s 
-    if(timerInt >= 1)
+    if(timerInt >= 10)
 		{
       timerInt=0;
+      handleCommand();
+      AdapterCBRove.task();
       
-      
-      
-
       
     }
 
@@ -437,7 +443,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   {
     Error_Handler();
   }
-
+  
   if ((RxHeader.DLC == 2))
   {
 	  datacheck = 1;
@@ -464,6 +470,48 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     
 }
 
+void sendCallback(uint8_t* buff, size_t length)
+{
+  // TODO Implement canbus send
+}
+
+void onDataRevieved(uint8_t *buff, size_t length)
+{
+  RxBuff.write(buff, length);
+  dataReady = true;
+}
+
+void handleCommand()
+{
+  if (!dataReady) return;
+
+  if (!CommandManager.handleCommand(RxBuff))
+  {
+    switch (CommandManager.status())
+    {
+    case _CommandManager::CMD_ID_OUT_OF_RANGE: // Command id out of range
+      // This can either be from a transmission issue or from an API version mismatch
+      while (RxBuff.available()) RxBuff.read();
+      break;
+    case _CommandManager::CALLBACK_NULL: // The sendCB callback is null
+      // You forgot to set the callback: CommandManager.setSendCB(&sendCallback)
+      Error_Handler();
+      break;
+    case _CommandManager::PARAM_SIZE_MISMATCH: // Not enough data to decode parameter
+      // This can simply be because the message is incomplete
+      break;
+    case _CommandManager::PEEK_ID_ERROR:
+    case _CommandManager::READ_ID_ERROR:
+    case _CommandManager::READ_PARAM_ERROR:
+      // These are problems that occur while reading the buffer
+      while (RxBuff.available()) RxBuff.read();
+      break;
+    default:
+      break;
+    }
+  }
+  dataReady = false;
+}
 
 void Error_Handler(void)
 {

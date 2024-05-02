@@ -1,5 +1,5 @@
 
-#include "../include/winchMotor.h"
+#include "winchMotor.h"
 
 
 /**

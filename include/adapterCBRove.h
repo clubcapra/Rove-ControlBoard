@@ -3,8 +3,7 @@
 
 // Include necessary libraries here
 #include "GPIO.h"
-#include "LED.h"
-#include "../include/Servo/servo.h"
+#include "Servo/servo.h"
 #include "winchMotor.h"
 
 
@@ -32,15 +31,61 @@
 
 
 
-class AdapterCBRove {
+class AdapterCBRoveClass {
+private:
+
+    bool checkInitialized();
+    void setMinMaxServoX(s16 max, s16 min);
+    void setMinMaxServoY(s16 max, s16 min);
+
+
+
+    // Add your member variables here
+    /*
+    uint8_t ID[2] = {SERVO_X, SERVO_Y};
+    uint8_t syncWritePosition[2];
+    uint8_t syncWriteSpeed[2];
+    */
+
+    SMS_STS st; 
+    volatile bool mInitialized = false;
+    volatile u8 mIDs[2] = {1, 2};
+    volatile int mServoPositions[2] = {0};
+    
+    volatile s16 mSetPositions[2] = {0};
+    volatile s16 mSetSpeeds[2] = {0};
+    volatile u8 mSetAccs[2] = {0};
+    volatile bool mServoModes[2] = {0};
+
+    volatile s16 setPositions[2]={0};
+    volatile s16 setSpeeds[2]={0};
+    volatile u8 setAccs[2]={0};
+
+    Servo mServoX = {mIDs[0], mServoPositions[0], mSetPositions[0], mSetSpeeds[0], mSetAccs[0]};
+    //volatile bool mLastXAck = true;
+    Servo mServoY = {mIDs[1], mServoPositions[1], mSetPositions[1], mSetSpeeds[1], mSetAccs[1]};
+    //volatile bool mLastYAck = true;
+
+    s16 mMaxPosX[2] = {0}; //0:max, 1:min
+    s16 mMaxPosY[2] = {0}; //0:max, 1:min
+
+    WinchMotor motorWhitch;
+    uint8_t mWinchState = 0;
+    GPIO gpioC;
+    GPIO gpioB;
+    GPIO gpioA;
+    volatile uint32_t mControlMode = 0;
+    volatile uint32_t mError = 0;
+
 public:
     // Constructor
-    AdapterCBRove();
+    AdapterCBRoveClass();
+
+    AdapterCBRoveClass &operator=(const AdapterCBRoveClass& other);
 
     // Destructor
-    ~AdapterCBRove();
+    ~AdapterCBRoveClass();
 
-    // Add your member functions here
     void init();
 
     void task();
@@ -89,58 +134,10 @@ public:
 
     Servo& getServoX();
     Servo& getServoY();
-private:
-
-    bool checkInitialized();
-    void setMinMaxServoX(s16 max, s16 min);
-    void setMinMaxServoY(s16 max, s16 min);
-
-private:
-
-
-    // Add your member variables here
-    /*
-    uint8_t ID[2] = {SERVO_X, SERVO_Y};
-    uint8_t syncWritePosition[2];
-    uint8_t syncWriteSpeed[2];
-    */
-
-    SMS_STS st; 
-    volatile bool mInitialized = false;
-    volatile u8 mIDs[2] = {1, 2};
-    volatile int mServoPositions[2] = {0};
-    
-    volatile s16 mSetPositions[2] = {0};
-    volatile s16 mSetSpeeds[2] = {0};
-    volatile u8 mSetAccs[2] = {0};
-    volatile bool mServoModes[2] = {0};
-
-    volatile s16 setPositions[2]={0};
-    volatile s16 setSpeeds[2]={0};
-    volatile u8 setAccs[2]={0};
-
-    Servo mServoX = {mIDs[0], mServoPositions[0], mSetPositions[0], mSetSpeeds[0], mSetAccs[0]};
-    //volatile bool mLastXAck = true;
-    Servo mServoY = {mIDs[1], mServoPositions[1], mSetPositions[1], mSetSpeeds[1], mSetAccs[1]};
-    //volatile bool mLastYAck = true;
-
-    s16 mMaxPosX[2] = {0}; //0:max, 1:min
-    s16 mMaxPosY[2] = {0}; //0:max, 1:min
-
-    WinchMotor motorWhitch;
-    uint8_t mWinchState = 0;
-    GPIO gpioC;
-    GPIO gpioB;
-    GPIO gpioA;
-    volatile uint32_t mControlMode = 0;
-    volatile uint32_t mError = 0;
-        
-
-    
 
   
 };
 
-
+extern AdapterCBRoveClass AdapterCBRove;
 
 #endif // ADAPTER_CB_ROVE_H

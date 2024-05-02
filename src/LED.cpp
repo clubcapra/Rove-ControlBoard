@@ -6,7 +6,7 @@
  * @brief Controle d<un led sur les gpio
  */
 
-#include "../include/LED.h"
+#include "LED.h"
 
 LED::LED(volatile uint32_t* gpioBase, uint32_t pinNum) : GPIO(gpioBase)
 {

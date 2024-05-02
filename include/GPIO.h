@@ -98,6 +98,7 @@ protected :
 	volatile uint32_t* GPIO_BSRR;
 	volatile uint32_t* GPIO_LCKR;
 	volatile uint32_t* GPIO_AFR[2];
+	volatile bool _isInit=false;
 };
 
 

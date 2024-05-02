@@ -17,6 +17,9 @@ This project is built using PlatformIO, an ecosystem compatible with Arduino and
 3. Open the project in PlatformIO IDE.
 4. Configure `platformio.ini` for your hardware.
 5. Install required libraries, including Adafruit NeoPixel.
+6. Change the environment to env:due and build (this will download the capra_micro_comm library). The build **will fail**. This is expected behavior.
+7. Change the environment back to env:nucleo_f446re and build. This **will also fail**.
+8. Locate the `.pio` folder, copy `.pio/libdeps/due/capra_micro_comm` and paste it in `.pio/libdeps/nucleo_f446re/`. This is a workaround to get the capra_micro_comm library for the nucleo. It may be due to the stm32cube framework.
 
 ## Building and Uploading
 - **Build**: Run `platformio run` to compile.

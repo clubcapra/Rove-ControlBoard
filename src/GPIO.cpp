@@ -7,7 +7,12 @@
  */
 
 
-#include "../include/GPIO.h"
+#include "GPIO.h"
+
+GPIO::GPIO()
+{
+	_isInit=false;
+}
 
 GPIO::GPIO(volatile uint32_t* gpioBase)
 {
@@ -24,6 +29,7 @@ GPIO::GPIO(volatile uint32_t* gpioBase)
 	GPIO_LCKR = gpioBase + 7;
 	GPIO_AFR[1] = gpioBase + 8;
 	GPIO_AFR[2] = gpioBase + 9;
+	_isInit=true;
 }
 GPIO::~GPIO() {}
 
@@ -42,6 +48,7 @@ GPIO::GPIO(const GPIO& gpio)
 	GPIO_LCKR = gpio.GPIO_LCKR;
 	GPIO_AFR[1] = gpio.GPIO_AFR[1];
 	GPIO_AFR[2] = gpio.GPIO_AFR[2];
+	_isInit=true;
 }	
 
 GPIO& GPIO::operator=(const GPIO& gpio)
@@ -59,34 +66,44 @@ GPIO& GPIO::operator=(const GPIO& gpio)
 	GPIO_LCKR = gpio.GPIO_LCKR;
 	GPIO_AFR[1] = gpio.GPIO_AFR[1];
 	GPIO_AFR[2] = gpio.GPIO_AFR[2];
+	_isInit=true;
 	return *this;
 }	
 
 GPIO& GPIO::setPinMode (uint32_t pinNum , Mode mode)
 {
-	if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+	if(_isInit)
 	{
-		*GPIO_MODER &= ~(3 << 2*pinNum);
-		*GPIO_MODER |= (mode << 2*pinNum);
+		if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+		{
+			*GPIO_MODER &= ~(3 << 2*pinNum);
+			*GPIO_MODER |= (mode << 2*pinNum);
+		}
 	}
 	return *this;
 }
 GPIO& GPIO::setPinOutputType (uint32_t pinNum , OutputType type)
 {
-	if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+	if(_isInit)
 	{
-		*GPIO_OTYPER &= ~(1 <<pinNum);
-		*GPIO_OTYPER |= (type <<pinNum);
+		if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+		{
+			*GPIO_OTYPER &= ~(1 <<pinNum);
+			*GPIO_OTYPER |= (type <<pinNum);
+		}
 	}
 	return * this;
 }
 
 PinState GPIO::readPin (uint32_t pinNum)
 {
-	if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+	if(_isInit)
 	{
-		return ((*GPIO_IDR & (1 <<pinNum )) >> pinNum ) ?
-				HIGH : LOW;
+		if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+		{
+			return ((*GPIO_IDR & (1 <<pinNum )) >> pinNum ) ?
+					HIGH : LOW;
+		}
 	}
 	return ERR;
 }
@@ -104,20 +121,26 @@ GPIO& GPIO::setPinSpeed (uint32_t pinNum , Speed speed)
 
 GPIO& GPIO::setPinPad (uint32_t pinNum , Pad pad)
 {
-	if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+	if(_isInit)
 	{
-		*GPIO_PUPDR &= ~(3 << 2*pinNum);
-		*GPIO_PUPDR |= (pad << 2*pinNum);
+		if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+		{
+			*GPIO_PUPDR &= ~(3 << 2*pinNum);
+			*GPIO_PUPDR |= (pad << 2*pinNum);
+		}
 	}
 	return * this;
 }
 
 GPIO& GPIO::writePin (uint32_t pinNum , bool value)
 {
-	if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+	if(_isInit)
 	{
-		*GPIO_ODR &= ~(1 <<pinNum);
-		*GPIO_ODR |= (value <<pinNum);
+		if (pinNum >= MIN_PIN_NUM && pinNum <= MAX_PIN_NUM)
+		{
+			*GPIO_ODR &= ~(1 <<pinNum);
+			*GPIO_ODR |= (value <<pinNum);
+		}
 	}
 	return * this;
 }

@@ -3,24 +3,26 @@
 
 /**
  * @file adapterCBRove.cpp
- * @brief Implementation file for the AdapterCBRove class.
+ * @brief Implementation file for the AdapterCBRoveClass class.
  *
- * This file contains the implementation of the AdapterCBRove class, which is responsible for
+ * This file contains the implementation of the AdapterCBRoveClass class, which is responsible for
  * controlling the communication between the ControleBoard and the adapter.
  */
-#include "../include/adapterCBRove.h"
+
+#include "api.h"
+#include "adapterCBRove.h"
 
 
 
 
 /**
- * @brief Constructs a new instance of the AdapterCBRove class.
+ * @brief Constructs a new instance of the AdapterCBRoveClass class.
  *
- * This constructor initializes a new instance of the AdapterCBRove class.
+ * This constructor initializes a new instance of the AdapterCBRoveClass class.
  * It is responsible for setting up the necessary resources and preparing
  * the adapter for communication with the ControleBoard.
  */
-AdapterCBRove::AdapterCBRove()
+AdapterCBRoveClass::AdapterCBRoveClass()
 {
      gpioC=GPIO((uint32_t *)(0x40020800UL));
      gpioB=GPIO((uint32_t *)(0x40020400UL));
@@ -28,22 +30,33 @@ AdapterCBRove::AdapterCBRove()
      motorWhitch=WinchMotor(gpioA);
 }
 
+AdapterCBRoveClass& AdapterCBRoveClass::operator=(const AdapterCBRoveClass& other)
+{
+     if (this == &other) return *this;
+     gpioA = other.gpioA;
+     gpioB = other.gpioB;
+     gpioC = other.gpioC;
+     motorWhitch = other.motorWhitch;
+
+     return *this;
+}
+
 /**
- * @brief Destructor for the AdapterCBRove class.
+ * @brief Destructor for the AdapterCBRoveClass class.
  * 
  * This destructor is responsible for cleaning up any resources
- * allocated by the AdapterCBRove class.
+ * allocated by the AdapterCBRoveClass class.
  */
-AdapterCBRove::~AdapterCBRove()
+AdapterCBRoveClass::~AdapterCBRoveClass()
 {
     
 }
 
 
 /**
- * Initializes the AdapterCBRove object.
+ * Initializes the AdapterCBRoveClass object.
  */
-void AdapterCBRove::init()
+void AdapterCBRoveClass::init()
 {
     
 
@@ -79,11 +92,11 @@ void AdapterCBRove::init()
 
 
 /**
- * Executes the task for the AdapterCBRove class.
- * This function is responsible for performing the necessary operations for the AdapterCBRove class.
+ * Executes the task for the AdapterCBRoveClass class.
+ * This function is responsible for performing the necessary operations for the AdapterCBRoveClass class.
  * It should be called periodically to ensure the proper functioning of the class.
  */
-void AdapterCBRove::task()
+void AdapterCBRoveClass::task()
 {
      if (!checkInitialized()) return;
      mServoPositions[0] = st.ReadPos(mIDs[0]);
@@ -136,7 +149,7 @@ void AdapterCBRove::task()
  * @param max The maximum value for the servo X.
  * @param min The minimum value for the servo X.
  */
-void AdapterCBRove::setMinMaxServoX(s16 max, s16 min)
+void AdapterCBRoveClass::setMinMaxServoX(s16 max, s16 min)
 {
      mMaxPosX[0] = max;
      mMaxPosX[1] = min;
@@ -151,7 +164,7 @@ void AdapterCBRove::setMinMaxServoX(s16 max, s16 min)
  * @param max The maximum value for the servo Y.
  * @param min The minimum value for the servo Y.
  */
-void AdapterCBRove::setMinMaxServoY(s16 max, s16 min)
+void AdapterCBRoveClass::setMinMaxServoY(s16 max, s16 min)
 {
      mMaxPosY[0] = max;
      mMaxPosY[1] = min;
@@ -161,14 +174,14 @@ void AdapterCBRove::setMinMaxServoY(s16 max, s16 min)
 /**
  * Sets the position of the servo motor.
  *
- * This function sets the position of the servo motor connected to the AdapterCBRove object.
+ * This function sets the position of the servo motor connected to the AdapterCBRoveClass object.
  * The position is specified by the `positionX` and `positionY` parameters.
  *
  * @param positionX The desired position of the servo motor along the X-axis.
  * @param positionY The desired position of the servo motor along the Y-axis.
  * @return True if the servo position was set successfully, false otherwise.
  */
-bool AdapterCBRove::setServoPosition(int positionX, int positionY)
+bool AdapterCBRoveClass::setServoPosition(int positionX, int positionY)
 {
      if (!checkInitialized()) return false;
      if(positionX >= mMaxPosX[0] )
@@ -197,7 +210,7 @@ bool AdapterCBRove::setServoPosition(int positionX, int positionY)
  *
  * @return true if the servo position was successfully set to zero, false otherwise.
  */
-bool AdapterCBRove::setServoPositionZero()
+bool AdapterCBRoveClass::setServoPositionZero()
 {
      return setServoPosition(0,0);
 }
@@ -212,7 +225,7 @@ bool AdapterCBRove::setServoPositionZero()
  * @param speedY The speed value for the Y direction.
  * @return True if the speed was set successfully, false otherwise.
  */
-bool AdapterCBRove::setServoSpeed(int speedX, int speedY)
+bool AdapterCBRoveClass::setServoSpeed(int speedX, int speedY)
 {
      if (!checkInitialized()) return false;
      mSetSpeeds[0] = speedX;
@@ -227,7 +240,7 @@ bool AdapterCBRove::setServoSpeed(int speedX, int speedY)
  * @param acc The acceleration value to set.
  * @return True if the acceleration value was set successfully, false otherwise.
  */
-bool AdapterCBRove::setServoAccX(u8 acc)
+bool AdapterCBRoveClass::setServoAccX(u8 acc)
 {
      if (!checkInitialized()) return false;
      mSetAccs[0] = acc;
@@ -241,7 +254,7 @@ bool AdapterCBRove::setServoAccX(u8 acc)
  * @param acc The acceleration value to set.
  * @return True if the acceleration value was set successfully, false otherwise.
  */
-bool AdapterCBRove::setServoAccY(u8 acc)
+bool AdapterCBRoveClass::setServoAccY(u8 acc)
 {
      if (!checkInitialized()) return false;
      mSetAccs[1] = acc;
@@ -251,15 +264,15 @@ bool AdapterCBRove::setServoAccY(u8 acc)
 
 
 /**
- * @brief Sets the servo mode of the AdapterCBRove.
+ * @brief Sets the servo mode of the AdapterCBRoveClass.
  *
- * This function is used to set the servo mode of the AdapterCBRove. The servo mode determines
- * whether the AdapterCBRove is in servo mode or not.
+ * This function is used to set the servo mode of the AdapterCBRoveClass. The servo mode determines
+ * whether the AdapterCBRoveClass is in servo mode or not.
  *
  * @param mode The servo mode to set. True for servo mode, false for non-servo mode.
  * @return True if the servo mode was successfully set, false otherwise.
  */
-bool AdapterCBRove::setServoMode(bool mode)
+bool AdapterCBRoveClass::setServoMode(bool mode)
 {
      if (!checkInitialized()) return false;
      st.WheelMode(SERVO_X, mode);
@@ -277,7 +290,7 @@ bool AdapterCBRove::setServoMode(bool mode)
  * 
  * @return true if the servo mode is enabled, false otherwise.
  */
-bool AdapterCBRove::getServoMode()
+bool AdapterCBRoveClass::getServoMode()
 {
      if (!checkInitialized()) return false;
      return mServoModes[0] && mServoModes[1];
@@ -289,7 +302,7 @@ bool AdapterCBRove::getServoMode()
  *
  * @return The position of the servo in the X-axis.
  */
-int AdapterCBRove::getServoPositionX()
+int AdapterCBRoveClass::getServoPositionX()
 {
      if (!checkInitialized()) return 0;
      return mServoPositions[0];
@@ -300,7 +313,7 @@ int AdapterCBRove::getServoPositionX()
  *
  * @return The position of the servo in the Y-axis.
  */
-int AdapterCBRove::getServoPositionY()
+int AdapterCBRoveClass::getServoPositionY()
 {
      if (!checkInitialized()) return 0;
      return mServoPositions[1];
@@ -312,7 +325,7 @@ int AdapterCBRove::getServoPositionY()
  *
  * @return The speed of the X-axis servo.
  */
-int AdapterCBRove::getServoSpeedX()
+int AdapterCBRoveClass::getServoSpeedX()
 {
      if (!checkInitialized()) return 0;
      return mSetSpeeds[0];
@@ -324,7 +337,7 @@ int AdapterCBRove::getServoSpeedX()
  *
  * @return The servo speed in the Y-axis.
  */
-int AdapterCBRove::getServoSpeedY()
+int AdapterCBRoveClass::getServoSpeedY()
 {
      if (!checkInitialized()) return 0;
      return mSetSpeeds[1];
@@ -336,7 +349,7 @@ int AdapterCBRove::getServoSpeedY()
  *
  * @return The acceleration value of the servo in the X-axis.
  */
-u8 AdapterCBRove::getServoAccX()
+u8 AdapterCBRoveClass::getServoAccX()
 {
     if (!checkInitialized()) return 0;
     return mSetAccs[0];
@@ -348,7 +361,7 @@ u8 AdapterCBRove::getServoAccX()
  *
  * @return The acceleration value of the servo in the Y-axis.
  */
-u8 AdapterCBRove::getServoAccY()
+u8 AdapterCBRoveClass::getServoAccY()
 {
     if (!checkInitialized()) return 0;
     return mSetAccs[1];
@@ -361,7 +374,7 @@ u8 AdapterCBRove::getServoAccY()
  * @param state The desired state of the front LED. True for ON, false for OFF.
  * @return True if the state was successfully set, false otherwise.
  */
-bool AdapterCBRove::setLEDFront(bool state)
+bool AdapterCBRoveClass::setLEDFront(bool state)
 {
      if (!checkInitialized()) return false;
      gpioC.writePin(PIN_LED_AVANT, state);
@@ -375,7 +388,7 @@ bool AdapterCBRove::setLEDFront(bool state)
  * @param state The desired state of the LED backlight.
  * @return True if the LED backlight state was successfully set, false otherwise.
  */
-bool AdapterCBRove::setLEDBack(bool state)
+bool AdapterCBRoveClass::setLEDBack(bool state)
 {
      if (!checkInitialized()) return false;
      gpioB.writePin(PIN_LED_ARRIERE, state);
@@ -392,7 +405,7 @@ bool AdapterCBRove::setLEDBack(bool state)
  * @param state The desired state of the LED strobe. Set to true to turn it on, false to turn it off.
  * @return true if the LED strobe state was successfully set, false otherwise.
  */
-bool AdapterCBRove::setLEDStrobe(bool state)
+bool AdapterCBRoveClass::setLEDStrobe(bool state)
 {
      if (!checkInitialized()) return false;
      gpioA.writePin(PIN_STROBE, state);
@@ -406,7 +419,7 @@ bool AdapterCBRove::setLEDStrobe(bool state)
  * @param state The state to set for the winch.
  * @return True if the winch state was successfully set, false otherwise.
  */
-bool AdapterCBRove::setWinchState(uint8_t state)
+bool AdapterCBRoveClass::setWinchState(uint8_t state)
 {
      if (!checkInitialized()) return false;
      mWinchState = state;
@@ -436,7 +449,7 @@ bool AdapterCBRove::setWinchState(uint8_t state)
  *
  * @return The state of the winch as a uint8_t value.
  */
-uint8_t AdapterCBRove::getWinchState()
+uint8_t AdapterCBRoveClass::getWinchState()
 {
      if (!checkInitialized()) return 0;
      return mWinchState;
@@ -452,7 +465,7 @@ uint8_t AdapterCBRove::getWinchState()
  * @param state The lock state to set. `true` for locked, `false` for unlocked.
  * @return `true` if the lock state was successfully set, `false` otherwise.
  */
-bool AdapterCBRove::setLockWinch1(bool state)
+bool AdapterCBRoveClass::setLockWinch1(bool state)
 {
      if (!checkInitialized()) return false;
      motorWhitch.setWinchLock1(state);
@@ -468,7 +481,7 @@ bool AdapterCBRove::setLockWinch1(bool state)
  * @param state The desired lock state of Winch2.
  * @return True if the lock state was successfully set, false otherwise.
  */
-bool AdapterCBRove::setLockWinch2(bool state)
+bool AdapterCBRoveClass::setLockWinch2(bool state)
 {
      if (!checkInitialized()) return false;
      motorWhitch.setWinchLock2(state);
@@ -483,7 +496,7 @@ bool AdapterCBRove::setLockWinch2(bool state)
  * 
  * @return true if Winch 1 is locked, false otherwise.
  */
-bool AdapterCBRove::getLockWinch1()
+bool AdapterCBRoveClass::getLockWinch1()
 {
      if (!checkInitialized()) return false;
      return motorWhitch.getWinchLock1();
@@ -497,7 +510,7 @@ bool AdapterCBRove::getLockWinch1()
  * 
  * @return true if Winch2 is locked, false otherwise.
  */
-bool AdapterCBRove::getLockWinch2()
+bool AdapterCBRoveClass::getLockWinch2()
 {
      if (!checkInitialized()) return false;
      return motorWhitch.getWinchLock2();
@@ -509,7 +522,7 @@ bool AdapterCBRove::getLockWinch2()
  *
  * @return true if the front LED is turned on, false otherwise.
  */
-bool AdapterCBRove::getLEDFront()
+bool AdapterCBRoveClass::getLEDFront()
 {
      if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_LED_AVANT))
@@ -532,7 +545,7 @@ bool AdapterCBRove::getLEDFront()
  *
  * @return true if the LED backlight is on, false otherwise.
  */
-bool AdapterCBRove::getLEDBack()
+bool AdapterCBRoveClass::getLEDBack()
 {
      if (!checkInitialized()) return false;
      switch (gpioB.readPin(PIN_LED_ARRIERE))
@@ -556,7 +569,7 @@ bool AdapterCBRove::getLEDBack()
  *
  * @return true if the LED strobe is enabled, false otherwise.
  */
-bool AdapterCBRove::getLEDStrobe()
+bool AdapterCBRoveClass::getLEDStrobe()
 {
      if (!checkInitialized()) return false;
      switch (gpioA.readPin(PIN_STROBE))
@@ -584,7 +597,7 @@ bool AdapterCBRove::getLEDStrobe()
  * @param state The state to set GPIO1 to.
  * @return True if the state was set successfully, false otherwise.
  */
-bool AdapterCBRove::setGPIO1(bool state)
+bool AdapterCBRoveClass::setGPIO1(bool state)
 {
      if (!checkInitialized()) return false;
      gpioC.writePin(PIN_GPIO_1, state);
@@ -600,7 +613,7 @@ bool AdapterCBRove::setGPIO1(bool state)
  * @param state The state to set GPIO2 to.
  * @return True if the state was successfully set, false otherwise.
  */
-bool AdapterCBRove::setGPIO2(bool state)
+bool AdapterCBRoveClass::setGPIO2(bool state)
 {
      if (!checkInitialized()) return false;
      gpioC.writePin(PIN_GPIO_2, state);
@@ -616,7 +629,7 @@ bool AdapterCBRove::setGPIO2(bool state)
  * @param state The desired state of GPIO3. True for high (on) state, false for low (off) state.
  * @return True if the state of GPIO3 was successfully set, false otherwise.
  */
-bool AdapterCBRove::setGPIO3(bool state)
+bool AdapterCBRoveClass::setGPIO3(bool state)
 {
      if (!checkInitialized()) return false;
      gpioC.writePin(PIN_GPIO_3, state);
@@ -626,12 +639,12 @@ bool AdapterCBRove::setGPIO3(bool state)
 /**
  * @brief Gets the state of GPIO1.
  * 
- * This function checks if the AdapterCBRove is initialized and reads the state of GPIO1.
+ * This function checks if the AdapterCBRoveClass is initialized and reads the state of GPIO1.
  * If GPIO1 is HIGH, it returns true. If GPIO1 is LOW or an invalid state, it returns false.
  * 
  * @return The state of GPIO1. True if HIGH, false if LOW or invalid state.
  */
-bool AdapterCBRove::getGPIO1()
+bool AdapterCBRoveClass::getGPIO1()
 {
      if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_GPIO_1))
@@ -657,7 +670,7 @@ bool AdapterCBRove::getGPIO1()
  *
  * @return The value of GPIO2.
  */
-bool AdapterCBRove::getGPIO2()
+bool AdapterCBRoveClass::getGPIO2()
 {
      if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_GPIO_2))
@@ -682,7 +695,7 @@ bool AdapterCBRove::getGPIO2()
  *
  * @return The value of GPIO3.
  */
-bool AdapterCBRove::getGPIO3()
+bool AdapterCBRoveClass::getGPIO3()
 {
      if (!checkInitialized()) return false;
      switch (gpioC.readPin(PIN_GPIO_3))
@@ -700,14 +713,14 @@ bool AdapterCBRove::getGPIO3()
 }
 
 /**
- * @brief Sets the control mode for the AdapterCBRove.
+ * @brief Sets the control mode for the AdapterCBRoveClass.
  *
- * This function sets the control mode of the AdapterCBRove to the specified mode.
+ * This function sets the control mode of the AdapterCBRoveClass to the specified mode.
  *
  * @param mode The control mode to set.
  * @return True if the control mode was set successfully, false otherwise.
  */
-bool AdapterCBRove::setControlMode(uint32_t mode)
+bool AdapterCBRoveClass::setControlMode(uint32_t mode)
 {
     if (!checkInitialized()) return false;
     mControlMode = mode;
@@ -727,11 +740,11 @@ bool AdapterCBRove::setControlMode(uint32_t mode)
 }
 
 /**
- * Retrieves the control mode of the AdapterCBRove.
+ * Retrieves the control mode of the AdapterCBRoveClass.
  *
  * @return The control mode as a uint32_t value.
  */
-uint32_t AdapterCBRove::getControlMode()
+uint32_t AdapterCBRoveClass::getControlMode()
 {
     if (!checkInitialized()) return 0;
     return mControlMode;
@@ -745,7 +758,7 @@ uint32_t AdapterCBRove::getControlMode()
  *
  * @return A reference to the Servo object for the X-axis servo.
  */
-Servo &AdapterCBRove::getServoX()
+Servo &AdapterCBRoveClass::getServoX()
 {
     return mServoX;
 }
@@ -761,22 +774,22 @@ Servo &AdapterCBRove::getServoX()
  *
  * @return A reference to the Servo object for controlling the Y-axis servo motor.
  */
-Servo &AdapterCBRove::getServoY()
+Servo &AdapterCBRoveClass::getServoY()
 {
     return mServoY;
 }
 
 
 /**
- * @brief Checks if the AdapterCBRove object has been initialized.
+ * @brief Checks if the AdapterCBRoveClass object has been initialized.
  * 
- * This function checks whether the AdapterCBRove object has been properly initialized
+ * This function checks whether the AdapterCBRoveClass object has been properly initialized
  * before performing any operations on it. It returns a boolean value indicating whether
  * the object is initialized or not.
  * 
- * @return true if the AdapterCBRove object is initialized, false otherwise.
+ * @return true if the AdapterCBRoveClass object is initialized, false otherwise.
  */
-bool AdapterCBRove::checkInitialized()
+bool AdapterCBRoveClass::checkInitialized()
 {
      if (mInitialized) 
           return true;
@@ -784,3 +797,4 @@ bool AdapterCBRove::checkInitialized()
           return false;
 }
 
+AdapterCBRoveClass AdapterCBRove = AdapterCBRoveClass();
