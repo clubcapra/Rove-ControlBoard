@@ -1,10 +1,11 @@
 
 
 #include "../include/main.h"
+
 #include "../include/GPIO.h"
 #include "../include/LED.h"
-#include "../include/Servo/SMS_STS.h"
-#include "stdio.h"
+#include "../include/Servo/Servo.h"
+
 
 CAN_HandleTypeDef hcan1;
 
@@ -86,22 +87,7 @@ int main(void)
   canTxData[0] = 50;  
   canTxData[1] = 0xAA;
   
- 
-  int ID=0x01;
-  u8 id[2]={0x01,0x02};
-  int positionServo[2]={0};
-  s16 setPosition[2]={0};
-  u16 setSpeed[2]={0};
-  u8 setAcc[2]={0};
-  enum STEP_SERVO{MOVE_1, READ_M1, MOVE_2,READ_M2};
-  STEP_SERVO step=MOVE_1;
-  
 
-  //st.WritePosEx(ID, 2000, 1500, 100);
-  st.WheelMode(1,true);
-  HAL_Delay(1000);
-  st.WriteSpe(1, 100, 0);
-  HAL_Delay(1000);
   while (1)
   {
     
@@ -111,49 +97,7 @@ int main(void)
 		{
       timerInt=0;
       
-      //st.FeedBack(1);
-      //st.ReadMove(1);
-      st.ReadPos(1);
-
-      /*
-      switch(step)
-      {
-        case MOVE_1:
-          //st.WritePosEx(ID, 2048, 150, 200);
-          setPosition[0]=2048;
-          setPosition[1]=2048;
-          setSpeed[0]=1500;
-          setSpeed[1]=1500;
-          setAcc[0]=150;
-          setAcc[1]=150;
-          st.SyncWritePosEx(id,2,setPosition,setSpeed,setAcc);
-          step=READ_M1;
-          break;
-        case READ_M1:
-        positionServo[0]=st.ReadPos(id[0]);
-        positionServo[1]=st.ReadPos(id[1]);
-          if((positionServo[0]<=2058 && positionServo[0]>=2038)&&(positionServo[1]<=2058 && positionServo[1]>=2038))//
-            step=MOVE_2;
-          break;
-        case MOVE_2:
-          setPosition[0]=-2048;
-          setPosition[1]=-2048;
-          setSpeed[0]=1500;
-          setSpeed[1]=1500;
-          setAcc[0]=150;
-          setAcc[1]=150;
-          st.SyncWritePosEx(id,2,setPosition,setSpeed,setAcc);
-          //st.WritePosEx(ID, -2048, 150, 200);
-          step=READ_M2;
-          break;
-        case READ_M2:
-          positionServo[0]=st.ReadPos(id[0]);
-          positionServo[1]=st.ReadPos(id[1]);
-          if((positionServo[0]<=5 && positionServo[0]>=0)&&(positionServo[1]<=5 && positionServo[1]>=0))
-            step=MOVE_1;
-          break;
-        
-      }*/
+      
       
 
       

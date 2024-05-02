@@ -3,7 +3,7 @@
 #ifndef WINCHMOTOR_H
 #define WINCHMOTOR_H
 #include "stdio.h"
-#include "../include/GPIO.h"
+#include "GPIO.h"
 
 
 class WinchMotor {

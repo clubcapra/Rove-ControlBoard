@@ -2,10 +2,10 @@
 #define ADAPTER_CB_ROVE_H
 
 // Include necessary libraries here
-#include "../include/GPIO.h"
-#include "../include/LED.h"
+#include "GPIO.h"
+#include "LED.h"
 #include "../include/Servo/servo.h"
-#include "../include/winchMotor.h"
+#include "winchMotor.h"
 
 
 #define PIN_LED_AVANT 4

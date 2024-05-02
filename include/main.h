@@ -1,6 +1,10 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdlib.h>  ///< Standard library
+#include <stdint.h>  ///< Std types
+#include <stdbool.h> ///< _Bool to bool
+
 #include "stm32f4xx_hal.h"
 
 
