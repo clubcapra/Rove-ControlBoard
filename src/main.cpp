@@ -9,6 +9,8 @@
 #include "adapterCBRove.h"
 #include "Servo/Servo.h"
 
+#define TIMMER_WHILE 1 // 0 = 100ms, 1 = 100us
+
 CAN_HandleTypeDef hcan1;
 
 TIM_HandleTypeDef htim1;
@@ -76,12 +78,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-  /*
-  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-  {
-	  Error_Handler();
-  }
-  */
+  
 
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x446;
@@ -91,12 +88,11 @@ int main(void)
   TxHeader.DLC = 2;
   canTxData[0] = 50;  
   canTxData[1] = 0xAA;
-  uint8_t data=0;
   
-  //AdapterCBRove.init();
+  AdapterCBRove.init();
   
-  //CommandManager.setCommands(commands, COMMANDS_COUNT);
-  //CommandManager.setSendCB(&sendCallback);
+  CommandManager.setCommands(commands, COMMANDS_COUNT);
+  CommandManager.setSendCB(&sendCallback);
 
   while (1)
   {
@@ -106,34 +102,8 @@ int main(void)
     if(timerInt >= 1000)
 		{
       timerInt=0;
-      //handleCommand();
-      //AdapterCBRove.task();
-      //canTxData[0]=100; //ms delay 
-      //canTxData[1]=10; //loop rep
-      //HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
-      /*
-      if(gpioC.readPin(13) == 0)
-      {
-        canTxData[0]=100; //ms delay 
-        canTxData[1]=10; //loop rep
-
-        HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
-      }*/
-      /*
-      canTxData[0]= data++;
-      canTxData[1]=data;
-      HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
-      */
-
-      if(datacheck == 1)
-      {
-        datacheck = 0;
-        led2.ledToggle();
-        canTxData[0]= data++;
-        canTxData[1]=data;
-        HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
-      }
-      
+      handleCommand();
+      AdapterCBRove.task();
       
     }
 
@@ -316,11 +286,14 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  //htim2.Init.Prescaler = 35; // 100ms
+  #if TIMMER_WHILE == 0
+  htim2.Init.Prescaler = 35; // 100ms
+  htim2.Init.Period = 49999; // 100ms
+  #elif TIMMER_WHILE == 1
   htim2.Init.Prescaler = 0; // 100us
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  //htim2.Init.Period = 49999; // 100ms
   htim2.Init.Period = 1799; // 100us
+  #endif
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -456,40 +429,21 @@ static void MX_DMA_Init(void)
 
 
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  /*
-  if(GPIO_Pin == GPIO_PIN_13)
-  {
-    canTxData[0]=100; //ms delay 
-    canTxData[1]=10; //loop rep
 
-    HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
-  }*/
-}
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRxData);
   
-  //onDataRevieved(canRxData, RxHeader.DLC);
+  onDataRevieved(canRxData, RxHeader.DLC);
   
-  if ((RxHeader.StdId == 0x103))
-  {
-	  datacheck = 1;
-    
-  }
+ 
 }
 
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) 
 {
- if(huart == &huart6)
- {
-  //st.flagRx=1;
-
-  //HAL_NVIC_DisableIRQ(USART6_IRQn);
- }
+ 
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
