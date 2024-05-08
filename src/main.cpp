@@ -81,15 +81,15 @@ int main(void)
 	  Error_Handler();
   }
   */
+
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x446;
   TxHeader.RTR = CAN_RTR_DATA;
-  TxHeader.DLC = 2;
+  //TxHeader.DLC = 2;
   
-  canTxData[0] = 50;  
-  canTxData[1] = 0xAA;
+  //canTxData[0] = 50;  
+  //canTxData[1] = 0xAA;
   
-  int ID=0x01;
   AdapterCBRove.init();
   
   CommandManager.setCommands(commands, COMMANDS_COUNT);
@@ -182,7 +182,7 @@ static void MX_CAN1_Init(void)
 
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 15;
+  hcan1.Init.Prescaler = 14;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_2TQ;
   hcan1.Init.TimeSeg1 = CAN_BS1_2TQ;
@@ -444,10 +444,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     Error_Handler();
   }
   
+  onDataRevieved(canRxData, RxHeader.DLC);
+  /*
   if ((RxHeader.DLC == 2))
   {
 	  datacheck = 1;
-  }
+  }*/
 }
 
 
@@ -473,6 +475,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 void sendCallback(uint8_t* buff, size_t length)
 {
   // TODO Implement canbus send
+  TxHeader.DLC = length;
+  for(uint8_t i = 0; i < length; i++)
+  {
+    canTxData[i] = buff[i];
+  }
+  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
 }
 
 void onDataRevieved(uint8_t *buff, size_t length)

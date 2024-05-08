@@ -2,6 +2,16 @@
 #include "api.h"
 #include "adapterCBRove.h"
 
+Int ping(Int i)
+{
+    return {i.i};
+}
+
+ULong hashCheck(Void _)
+{
+    return {API_HASH};
+}
+
 Bool_ setServoPosition(Vector2D pos)
 {
     return { AdapterCBRove.setServoPosition(pos.x, pos.y) };
