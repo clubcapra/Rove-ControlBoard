@@ -49,7 +49,7 @@ SMS_STS st;
 uint8_t canRxData[8];
 uint8_t canTxData[8];
 uint32_t TxMailbox;
-int datacheck = 0;
+volatile int datacheck = 0;
 
 
 
@@ -75,6 +75,7 @@ int main(void)
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_CAN_Start(&hcan1);
+  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
   /*
   if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
   {
@@ -85,26 +86,53 @@ int main(void)
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x446;
   TxHeader.RTR = CAN_RTR_DATA;
-  //TxHeader.DLC = 2;
+
+
+  TxHeader.DLC = 2;
+  canTxData[0] = 50;  
+  canTxData[1] = 0xAA;
+  uint8_t data=0;
   
-  //canTxData[0] = 50;  
-  //canTxData[1] = 0xAA;
+  //AdapterCBRove.init();
   
-  AdapterCBRove.init();
-  
-  CommandManager.setCommands(commands, COMMANDS_COUNT);
-  CommandManager.setSendCB(&sendCallback);
+  //CommandManager.setCommands(commands, COMMANDS_COUNT);
+  //CommandManager.setSendCB(&sendCallback);
 
   while (1)
   {
     
 
     //Temps de 2,2 s 
-    if(timerInt >= 10)
+    if(timerInt >= 1000)
 		{
       timerInt=0;
-      handleCommand();
-      AdapterCBRove.task();
+      //handleCommand();
+      //AdapterCBRove.task();
+      //canTxData[0]=100; //ms delay 
+      //canTxData[1]=10; //loop rep
+      //HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
+      /*
+      if(gpioC.readPin(13) == 0)
+      {
+        canTxData[0]=100; //ms delay 
+        canTxData[1]=10; //loop rep
+
+        HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
+      }*/
+      /*
+      canTxData[0]= data++;
+      canTxData[1]=data;
+      HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
+      */
+
+      if(datacheck == 1)
+      {
+        datacheck = 0;
+        led2.ledToggle();
+        canTxData[0]= data++;
+        canTxData[1]=data;
+        HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
+      }
       
       
     }
@@ -190,7 +218,7 @@ static void MX_CAN1_Init(void)
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
-  hcan1.Init.AutoRetransmission = ENABLE;
+  hcan1.Init.AutoRetransmission = DISABLE;
   hcan1.Init.ReceiveFifoLocked = DISABLE;
   hcan1.Init.TransmitFifoPriority = DISABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
@@ -203,9 +231,9 @@ static void MX_CAN1_Init(void)
   canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
   canfilterconfig.FilterBank = 18;  // which filter bank to use from the assigned ones
   canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-  canfilterconfig.FilterIdHigh = 0x446<<5;
+  canfilterconfig.FilterIdHigh = 0x103<<5;
   canfilterconfig.FilterIdLow = 0;
-  canfilterconfig.FilterMaskIdHigh = 0x446<<5;
+  canfilterconfig.FilterMaskIdHigh = 0x103<<5;
   canfilterconfig.FilterMaskIdLow = 0x0000;
   canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
   canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
@@ -288,9 +316,11 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 35;
+  //htim2.Init.Prescaler = 35; // 100ms
+  htim2.Init.Prescaler = 0; // 100us
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 49999;
+  //htim2.Init.Period = 49999; // 100ms
+  htim2.Init.Period = 1799; // 100us
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -428,28 +458,27 @@ static void MX_DMA_Init(void)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+  /*
   if(GPIO_Pin == GPIO_PIN_13)
   {
     canTxData[0]=100; //ms delay 
     canTxData[1]=10; //loop rep
 
     HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
-  }
+  }*/
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-  if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRxData) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRxData);
   
-  onDataRevieved(canRxData, RxHeader.DLC);
-  /*
-  if ((RxHeader.DLC == 2))
+  //onDataRevieved(canRxData, RxHeader.DLC);
+  
+  if ((RxHeader.StdId == 0x103))
   {
 	  datacheck = 1;
-  }*/
+    
+  }
 }
 
 
