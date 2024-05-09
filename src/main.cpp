@@ -45,7 +45,7 @@ void onDataRevieved(uint8_t* buff, size_t length);
 void handleCommand();
 
 volatile uint16_t timerInt=0;
-volatile uint16_t timertest=0;
+volatile uint16_t timerApi=0;
 SMS_STS st;
 
 uint8_t canRxData[8];
@@ -70,7 +70,7 @@ int main(void)
   MX_TIM1_Init();
   
   
-  st.pSerial = &huart6;
+  //st.pSerial = &huart6;
 
   LED led2((uint32_t *)(0x40020000UL),5);
   GPIO gpioC((uint32_t *)(0x40020800UL));
@@ -89,27 +89,34 @@ int main(void)
   canTxData[0] = 50;  
   canTxData[1] = 0xAA;
   
-  AdapterCBRove.init();
+  AdapterCBRove.init(&huart6);
   
   CommandManager.setCommands(commands, COMMANDS_COUNT);
   CommandManager.setSendCB(&sendCallback);
 
+  //AdapterCBRove.setServoPosition(1000, 100);
+  //st.WritePosEx(1,20,20,0);
   while (1)
   {
     
 
-    //Temps de 2,2 s 
+    if(timerApi >= 50)
+    {
+      timerApi=0;
+      handleCommand();
+    }
+    //Temps de 100us
     if(timerInt >= 1000)
 		{
       timerInt=0;
-      handleCommand();
+      
       AdapterCBRove.task();
       
     }
 
-    
-    
   }
+    
+  
 }
 
 
@@ -451,6 +458,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
   if(htim == &htim2)
   {
     timerInt++;
+    timerApi++;
   }
     
 }

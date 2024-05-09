@@ -49,21 +49,21 @@ private:
 
     SMS_STS st; 
     volatile bool mInitialized = false;
-    volatile u8 mIDs[2] = {1, 2};
-    volatile int mServoPositions[2] = {0};
+    u8 mIDs[2] = {1, 2};
+    s16 mServoPositions[2] = {0};
     
     volatile s16 mSetPositions[2] = {0};
     volatile s16 mSetSpeeds[2] = {0};
     volatile u8 mSetAccs[2] = {0};
     volatile bool mServoModes[2] = {0};
 
-    volatile s16 setPositions[2]={0};
-    volatile s16 setSpeeds[2]={0};
-    volatile u8 setAccs[2]={0};
+    s16 setPositions[2]={0};
+    s16 setSpeeds[2]={1000};
+    u8 setAccs[2]={100};
 
-    Servo mServoX = {mIDs[0], mServoPositions[0], mSetPositions[0], mSetSpeeds[0], mSetAccs[0]};
+    
     //volatile bool mLastXAck = true;
-    Servo mServoY = {mIDs[1], mServoPositions[1], mSetPositions[1], mSetSpeeds[1], mSetAccs[1]};
+    
     //volatile bool mLastYAck = true;
 
     s16 mMaxPosX[2] = {0}; //0:max, 1:min
@@ -74,8 +74,8 @@ private:
     GPIO gpioC;
     GPIO gpioB;
     GPIO gpioA;
-    volatile uint32_t mControlMode = 0;
-    volatile uint32_t mError = 0;
+    volatile ServoControlMode mControlMode = SCMPosition;
+    volatile u16 mError = 0;
 
 public:
     // Constructor
@@ -86,12 +86,12 @@ public:
     // Destructor
     ~AdapterCBRoveClass();
 
-    void init();
+    void init(UART_HandleTypeDef *huartServo);
 
     void task();
 
-    bool setServoPosition(int positionX, int positionY);
-    bool setServoSpeed(int speedX, int speedY);
+    bool setServoPosition(s16 positionX, s16 positionY);
+    bool setServoSpeed(s16 speedX, s16 speedY);
     bool setServoPositionZero();
     bool setServoAccX(u8 acc);
     bool setServoAccY(u8 acc);
@@ -99,10 +99,10 @@ public:
     bool setServoMode(bool mode); //1 = wheel mode, 0 = joint mode
     bool getServoMode();
 
-    int getServoPositionX();
-    int getServoPositionY();
-    int getServoSpeedX();
-    int getServoSpeedY();
+    s16 getServoPositionX();
+    s16 getServoPositionY();
+    s16 getServoSpeedX();
+    s16 getServoSpeedY();
     u8 getServoAccX();
     u8 getServoAccY();
 
@@ -129,11 +129,11 @@ public:
     bool getGPIO2();
     bool getGPIO3();
 
-    bool setControlMode(uint32_t mode);
+    bool setControlMode(ServoControlMode mode);
     uint32_t getControlMode();
 
-    Servo& getServoX();
-    Servo& getServoY();
+    //Servo& getServoX();
+    //Servo& getServoY();
 
   
 };

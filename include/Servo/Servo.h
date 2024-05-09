@@ -6,11 +6,11 @@
 
 struct Servo
 {
-    volatile u8 &id;
-    volatile int &position;
-    volatile s16 &setPosition;
-    volatile s16 &setSpeed;
-    volatile u8 &setAcc;
+    u8 &id;
+    int &position;
+    s16 &setPosition;
+    s16 &setSpeed;
+    u8 &setAcc;
 };
 
 #endif // SERVO_H

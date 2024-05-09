@@ -56,7 +56,7 @@ AdapterCBRoveClass::~AdapterCBRoveClass()
 /**
  * Initializes the AdapterCBRoveClass object.
  */
-void AdapterCBRoveClass::init()
+void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 {
     
 
@@ -79,10 +79,12 @@ void AdapterCBRoveClass::init()
      gpioC.writePin(PIN_GPIO_2, 0);
      gpioC.writePin(PIN_GPIO_3, 0);
 
+     st.pSerial=huartServo;
      setMinMaxServoX(4095, -4095);
 
      //@todo: set min max servo Y
      setMinMaxServoY(4095, -4095);
+     setServoMode(0);
 
 
      mInitialized = true;
@@ -111,13 +113,17 @@ void AdapterCBRoveClass::task()
 
      switch (mControlMode)
      {
-     case 0:
+     case SCMPosition:
+     st.SyncWritePosEx(mIDs,2,setPositions,(u16*)setSpeeds,setAccs);
+     //st.WritePosEx(mIDs[0], setPositions[0], setSpeeds[0], setAccs[0]);
+     /*
           if(mServoPositions[0]<=mSetPositions[0]+5 && mServoPositions[0]>=mSetPositions[0]-5
           && mServoPositions[1]<=mSetPositions[1]+5 && mServoPositions[1]>=mSetPositions[1]-5);
           else
                st.WritePosEx(mIDs[0], setPositions[0], setSpeeds[0], setAccs[0]);
+     */          
           break;
-     case 1:
+     case SCMSpeed:
 
           if(mServoPositions[0] >= mMaxPosX[0] || mServoPositions[0] <= mMaxPosX[1])
           {
@@ -181,12 +187,12 @@ void AdapterCBRoveClass::setMinMaxServoY(s16 max, s16 min)
  * @param positionY The desired position of the servo motor along the Y-axis.
  * @return True if the servo position was set successfully, false otherwise.
  */
-bool AdapterCBRoveClass::setServoPosition(int positionX, int positionY)
+bool AdapterCBRoveClass::setServoPosition(s16 positionX, s16 positionY)
 {
      if (!checkInitialized()) return false;
      if(positionX >= mMaxPosX[0] )
           mSetPositions[0]=mMaxPosX[0];
-     else if(positionX < mMaxPosX[1])
+     else if(positionX <= mMaxPosX[1])
           mSetPositions[0]= mMaxPosX[1];
      else
           mSetPositions[0] = positionX;
@@ -225,7 +231,7 @@ bool AdapterCBRoveClass::setServoPositionZero()
  * @param speedY The speed value for the Y direction.
  * @return True if the speed was set successfully, false otherwise.
  */
-bool AdapterCBRoveClass::setServoSpeed(int speedX, int speedY)
+bool AdapterCBRoveClass::setServoSpeed(s16 speedX, s16 speedY)
 {
      if (!checkInitialized()) return false;
      mSetSpeeds[0] = speedX;
@@ -302,7 +308,7 @@ bool AdapterCBRoveClass::getServoMode()
  *
  * @return The position of the servo in the X-axis.
  */
-int AdapterCBRoveClass::getServoPositionX()
+s16 AdapterCBRoveClass::getServoPositionX()
 {
      if (!checkInitialized()) return 0;
      return mServoPositions[0];
@@ -313,7 +319,7 @@ int AdapterCBRoveClass::getServoPositionX()
  *
  * @return The position of the servo in the Y-axis.
  */
-int AdapterCBRoveClass::getServoPositionY()
+s16 AdapterCBRoveClass::getServoPositionY()
 {
      if (!checkInitialized()) return 0;
      return mServoPositions[1];
@@ -325,7 +331,7 @@ int AdapterCBRoveClass::getServoPositionY()
  *
  * @return The speed of the X-axis servo.
  */
-int AdapterCBRoveClass::getServoSpeedX()
+s16 AdapterCBRoveClass::getServoSpeedX()
 {
      if (!checkInitialized()) return 0;
      return mSetSpeeds[0];
@@ -337,7 +343,7 @@ int AdapterCBRoveClass::getServoSpeedX()
  *
  * @return The servo speed in the Y-axis.
  */
-int AdapterCBRoveClass::getServoSpeedY()
+s16 AdapterCBRoveClass::getServoSpeedY()
 {
      if (!checkInitialized()) return 0;
      return mSetSpeeds[1];
@@ -720,7 +726,7 @@ bool AdapterCBRoveClass::getGPIO3()
  * @param mode The control mode to set.
  * @return True if the control mode was set successfully, false otherwise.
  */
-bool AdapterCBRoveClass::setControlMode(uint32_t mode)
+bool AdapterCBRoveClass::setControlMode(ServoControlMode mode)
 {
     if (!checkInitialized()) return false;
     mControlMode = mode;
@@ -758,10 +764,11 @@ uint32_t AdapterCBRoveClass::getControlMode()
  *
  * @return A reference to the Servo object for the X-axis servo.
  */
+/*
 Servo &AdapterCBRoveClass::getServoX()
 {
     return mServoX;
-}
+}*/
 
 
 /**
@@ -774,10 +781,11 @@ Servo &AdapterCBRoveClass::getServoX()
  *
  * @return A reference to the Servo object for controlling the Y-axis servo motor.
  */
+/*
 Servo &AdapterCBRoveClass::getServoY()
 {
     return mServoY;
-}
+}*/
 
 
 /**

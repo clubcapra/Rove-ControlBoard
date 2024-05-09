@@ -37,22 +37,22 @@ Vector2D getServoSpeed(Void _)
     return { AdapterCBRove.getServoSpeedX(), AdapterCBRove.getServoSpeedY() };
 }
 
-Int getServoPositionX(Void _)
+Short getServoPositionX(Void _)
 {
     return { AdapterCBRove.getServoPositionX() };
 }
 
-Int getServoPositionY(Void _)
+Short getServoPositionY(Void _)
 {
     return { AdapterCBRove.getServoPositionY() };
 }
 
-Int getServoSpeedX(Void _)
+Short getServoSpeedX(Void _)
 {
     return { AdapterCBRove.getServoSpeedX() };
 }
 
-Int getServoSpeedY(Void _)
+Short getServoSpeedY(Void _)
 {
     return { AdapterCBRove.getServoSpeedY() };
 }
