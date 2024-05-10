@@ -11,6 +11,7 @@
 #define PIN_LED_ARRIERE 4
 #define PIN_STROBE 15
 
+
 #define PIN_WINCH_DIR1 3
 #define PIN_WINCH_DIR2 4
 #define PIN_WINCH_LOCK1 10

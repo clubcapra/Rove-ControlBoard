@@ -73,7 +73,7 @@ void WinchMotor::init(uint8_t dirPin1, uint8_t dirPin2, uint8_t pinWinchLock1, u
     gpio.setPinMode(pWinchLock2,OUTPUT).setPinOutputType(pWinchLock2, PUSH_PULL).setPinSpeed(pWinchLock2, MEDIUM_SPEED).setPinPad(pWinchLock2,PULL_UP);
     setWinchLock1(1);
     setWinchLock2(1);
-    winchMotorBreak();
+    winchMotorBrake();
 
 }
     
@@ -98,7 +98,7 @@ void WinchMotor::winchMotorReverse()
 /**
  * Stops the winch motor.
  */
-void WinchMotor::winchMotorBreak()
+void WinchMotor::winchMotorBrake()
 {
     gpio.writePin(dirP1, 1).writePin(dirP2, 1);
     

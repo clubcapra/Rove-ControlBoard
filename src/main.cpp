@@ -45,7 +45,7 @@ void onDataRevieved(uint8_t* buff, size_t length);
 void handleCommand();
 
 volatile uint16_t timerInt=0;
-volatile uint16_t timerApi=0;
+//volatile uint16_t timerApi=0;
 SMS_STS st;
 
 uint8_t canRxData[8];
@@ -72,7 +72,7 @@ int main(void)
   
   //st.pSerial = &huart6;
 
-  LED led2((uint32_t *)(0x40020000UL),5);
+  //LED led2((uint32_t *)(0x40020000UL),5);
   GPIO gpioC((uint32_t *)(0x40020800UL));
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
@@ -99,12 +99,13 @@ int main(void)
   while (1)
   {
     
-
+    handleCommand();
+    /*
     if(timerApi >= 50)
     {
       timerApi=0;
-      handleCommand();
-    }
+      
+    }*/
     //Temps de 100us
     if(timerInt >= 1000)
 		{
@@ -443,8 +444,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRxData);
   
   onDataRevieved(canRxData, RxHeader.DLC);
-  
- 
 }
 
 
@@ -458,7 +457,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
   if(htim == &htim2)
   {
     timerInt++;
-    timerApi++;
+    //timerApi++;
   }
     
 }
@@ -466,12 +465,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 void sendCallback(uint8_t* buff, size_t length)
 {
   // TODO Implement canbus send
-  TxHeader.DLC = length;
-  for(uint8_t i = 0; i < length; i++)
+  size_t remaining = length;
+  uint8_t index=0;
+  while (remaining)
   {
-    canTxData[i] = buff[i];
+    TxHeader.DLC = GMin((size_t)8, remaining);
+    for(uint8_t i = 0; i < TxHeader.DLC; i++, index++)
+    {
+      canTxData[i] = buff[index];
+    }
+    remaining-=TxHeader.DLC;
+    HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
+
   }
-  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canTxData, &TxMailbox);
 }
 
 void onDataRevieved(uint8_t *buff, size_t length)

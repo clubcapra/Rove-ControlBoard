@@ -80,7 +80,7 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
      gpioC.writePin(PIN_GPIO_3, 0);
 
      st.pSerial=huartServo;
-     setMinMaxServoX(4095, -4095);
+     setMinMaxServoX((4095*2), (-4095*2));
 
      //@todo: set min max servo Y
      setMinMaxServoY(4095, -4095);
@@ -435,7 +435,7 @@ bool AdapterCBRoveClass::setWinchState(uint8_t state)
           motorWhitch.winchMotorFreeWheel();
           break;
      case 2:
-          motorWhitch.winchMotorBreak();
+          motorWhitch.winchMotorBrake();
           break;
      case 3:
           motorWhitch.winchMotorReverse();

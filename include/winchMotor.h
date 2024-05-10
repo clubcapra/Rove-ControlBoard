@@ -16,7 +16,7 @@ public:
     void init(uint8_t dirPin1, uint8_t dirPin2, uint8_t pinWinchLock1, uint8_t pinWinchLock2);
     void winchMotorForward();
     void winchMotorReverse();
-    void winchMotorBreak();
+    void winchMotorBrake();
     void winchMotorFreeWheel();
 
     void setWinchLock1(bool state);
