@@ -120,9 +120,9 @@ UShort getWinchMode(Void _)
     return { AdapterCBRove.getWinchState() };
 }
 
-Void setWinchMode(UShort mode)
+Bool_ setWinchMode(UShort mode)
 {
-    AdapterCBRove.setWinchState((WinchMode)mode.s);
+    return {AdapterCBRove.setWinchState((WinchMode)mode.s)};
 }
 
 Bool_ getWinchLock(Void _)
@@ -140,6 +140,11 @@ Bool_ setWinchLock(Void _)
 UShort getServoControlMode(Void _)
 {
     return { AdapterCBRove.getControlMode() };
+}
+
+Bool_ setServoControlMode(UShort mode)
+{
+    return {AdapterCBRove.setControlMode((ServoControlMode)mode.s)};
 }
 
 Bool_ getGPIO1(Void _)
