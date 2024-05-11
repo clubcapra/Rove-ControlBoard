@@ -71,10 +71,16 @@ private:
     s16 mMaxPosY[2] = {0}; //0:max, 1:min
 
     WinchMotor motorWhitch;
-    uint8_t mWinchState = 0;
+    WinchMode mWinchState = WMFreeWheel;
     GPIO gpioC;
     GPIO gpioB;
     GPIO gpioA;
+    //RGB setRGBLed;
+    RGB mRGBLed;
+
+    RGBLed mRGBLedState;
+    RGBLed setRGBLedState;
+
     volatile ServoControlMode mControlMode = SCMPosition;
     volatile u16 mError = 0;
 
@@ -115,8 +121,8 @@ public:
     bool getLEDBack();
     bool getLEDStrobe();
 
-    bool setWinchState(uint8_t state);
-    uint8_t getWinchState();
+    bool setWinchState(WinchMode state);
+    WinchMode getWinchState();
     bool setLockWinch1(bool state);
     bool setLockWinch2(bool state);
     bool getLockWinch1();
@@ -131,7 +137,11 @@ public:
     bool getGPIO3();
 
     bool setControlMode(ServoControlMode mode);
-    uint32_t getControlMode();
+    ServoControlMode getControlMode();
+
+    RGB getRGBLed(Int led);
+
+    bool setRGBLed(RGBLed color);
 
     //Servo& getServoX();
     //Servo& getServoY();

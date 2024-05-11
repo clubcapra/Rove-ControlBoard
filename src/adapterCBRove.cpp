@@ -425,22 +425,22 @@ bool AdapterCBRoveClass::setLEDStrobe(bool state)
  * @param state The state to set for the winch.
  * @return True if the winch state was successfully set, false otherwise.
  */
-bool AdapterCBRoveClass::setWinchState(uint8_t state)
+bool AdapterCBRoveClass::setWinchState(WinchMode state)
 {
      if (!checkInitialized()) return false;
      mWinchState = state;
      switch (state)
      {
-     case 1:
+     case WMFreeWheel:
           motorWhitch.winchMotorFreeWheel();
           break;
-     case 2:
+     case WMBrake:
           motorWhitch.winchMotorBrake();
           break;
-     case 3:
+     case WMReverse:
           motorWhitch.winchMotorReverse();
           break;
-     case 4:
+     case WMForward:
           motorWhitch.winchMotorForward();
           break;
      default:
@@ -455,9 +455,9 @@ bool AdapterCBRoveClass::setWinchState(uint8_t state)
  *
  * @return The state of the winch as a uint8_t value.
  */
-uint8_t AdapterCBRoveClass::getWinchState()
+WinchMode AdapterCBRoveClass::getWinchState()
 {
-     if (!checkInitialized()) return 0;
+     //if (!checkInitialized()) return 0;
      return mWinchState;
 }
 
@@ -732,10 +732,10 @@ bool AdapterCBRoveClass::setControlMode(ServoControlMode mode)
     mControlMode = mode;
     switch (mControlMode)
     {
-     case 0:
+     case SCMPosition:
           setServoMode(0);
           break;
-     case 1:
+     case SCMSpeed:
           setServoMode(1);
           break;
      
@@ -750,9 +750,9 @@ bool AdapterCBRoveClass::setControlMode(ServoControlMode mode)
  *
  * @return The control mode as a uint32_t value.
  */
-uint32_t AdapterCBRoveClass::getControlMode()
+ServoControlMode AdapterCBRoveClass::getControlMode()
 {
-    if (!checkInitialized()) return 0;
+    if (!checkInitialized()) return SCMNone;
     return mControlMode;
 }
 
@@ -804,5 +804,21 @@ bool AdapterCBRoveClass::checkInitialized()
      else
           return false;
 }
+
+RGB AdapterCBRoveClass::getRGBLed(Int led)
+{
+     //if(!checkInitialized()) return RGBLed();
+     //return RGBLed(gpioA, gpioB, gpioC);
+     
+     return mRGBLed;
+}
+
+bool AdapterCBRoveClass::setRGBLed(RGBLed color)
+{
+     if(!checkInitialized()) return false;
+     //return color.setRGBLed();
+     return true;
+}
+
 
 AdapterCBRoveClass AdapterCBRove = AdapterCBRoveClass();

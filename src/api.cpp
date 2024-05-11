@@ -115,4 +115,74 @@ Report getReport(Void _)
     return { getServoPosition({}), 0, 0 };
 }
 
+UShort getWinchMode(Void _)
+{
+    return { AdapterCBRove.getWinchState() };
+}
+
+Void setWinchMode(UShort mode)
+{
+    AdapterCBRove.setWinchState((WinchMode)mode.s);
+}
+
+Bool_ getWinchLock(Void _)
+{
+    //return { AdapterCBRove.getWinchLock() };
+    return { false };
+}
+
+Bool_ setWinchLock(Void _)
+{
+    //return { AdapterCBRove.setWinchLock() };
+    return { false };
+}
+
+UShort getServoControlMode(Void _)
+{
+    return { AdapterCBRove.getControlMode() };
+}
+
+Bool_ getGPIO1(Void _)
+{
+    return { AdapterCBRove.getGPIO1() };
+}
+
+Bool_ setGPIO1(Bool_ state)
+{
+    AdapterCBRove.setGPIO1(state.b);
+    return { true };
+}
+
+Bool_ getGPIO2(Void _)
+{
+    return { AdapterCBRove.getGPIO2() };
+}
+
+Bool_ setGPIO2(Bool_ state)
+{
+    AdapterCBRove.setGPIO2(state.b);
+    return { true };
+}
+
+Bool_ getGPIO3(Void _)
+{
+    return { AdapterCBRove.getGPIO3() };
+}
+
+Bool_ setGPIO3(Bool_ state)
+{
+    AdapterCBRove.setGPIO3(state.b);
+    return { true };
+}
+
+RGB getRGBLed(Int led)
+{
+    return {AdapterCBRove.getRGBLed(led)};
+}
+
+Bool_ setRGBLed(RGBLed color)
+{
+    return { AdapterCBRove.setRGBLed(color) };
+}
+
 
