@@ -8,6 +8,9 @@
 #include "api.h"
 #include "adapterCBRove.h"
 #include "Servo/Servo.h"
+extern "C" {
+#include "ARGB.h"
+}
 
 #define TIMMER_WHILE 1 // 0 = 100ms, 1 = 100us
 
@@ -16,7 +19,6 @@ CAN_HandleTypeDef hcan1;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
-DMA_HandleTypeDef hdma_tim1_ch2;
 
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
@@ -69,7 +71,7 @@ int main(void)
   MX_CAN1_Init();
   MX_TIM1_Init();
   
-  
+  ARGB_Init();
   //st.pSerial = &huart6;
 
   //LED led2((uint32_t *)(0x40020000UL),5);
@@ -79,21 +81,24 @@ int main(void)
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
   
-
+  
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x446;
   TxHeader.RTR = CAN_RTR_DATA;
 
 
   TxHeader.DLC = 2;
-  canTxData[0] = 50;  
+  canTxData[0] = 50;
   canTxData[1] = 0xAA;
   
   AdapterCBRove.init(&huart6);
   
   CommandManager.setCommands(commands, COMMANDS_COUNT);
   CommandManager.setSendCB(&sendCallback);
-
+  ARGB_FillRGB(0, 200, 0); 
+  while (!ARGB_Show());
+  ARGB_Clear(); // Clear stirp
+  while (!ARGB_Show());
   //AdapterCBRove.setServoPosition(1000, 100);
   //st.WritePosEx(1,20,20,0);
   while (1)

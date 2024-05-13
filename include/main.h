@@ -21,7 +21,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
 
-
+DMA_HandleTypeDef hdma_tim1_ch2;
 
 void Error_Handler(void);
 
