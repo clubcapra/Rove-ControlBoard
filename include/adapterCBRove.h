@@ -3,7 +3,7 @@
 
 // Include necessary libraries here
 #include "GPIO.h"
-#include "Servo/servo.h"
+#include "Servo/Servo.h"
 #include "winchMotor.h"
 
 
