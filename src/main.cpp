@@ -8,6 +8,7 @@
 #include "api.h"
 #include "adapterCBRove.h"
 #include "Servo/Servo.h"
+#include "ErrorManager.h"
 
 #define TIMMER_WHILE 1 // 0 = 100ms, 1 = 100us
 
@@ -41,7 +42,7 @@ volatile bool dataReady = false;
 Buffer TxBuff = Buffer(MAX_DECODED_SIZE*2);
 Buffer RxBuff = Buffer(MAX_DECODED_SIZE*2);
 void sendCallback(uint8_t* buff, size_t length);
-void onDataRevieved(uint8_t* buff, size_t length);
+void onDataRecieved(uint8_t* buff, size_t length);
 void handleCommand();
 
 volatile uint16_t timerInt=0;
@@ -443,7 +444,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRxData);
   
-  onDataRevieved(canRxData, RxHeader.DLC);
+  onDataRecieved(canRxData, RxHeader.DLC);
 }
 
 
@@ -480,7 +481,7 @@ void sendCallback(uint8_t* buff, size_t length)
   }
 }
 
-void onDataRevieved(uint8_t *buff, size_t length)
+void onDataRecieved(uint8_t *buff, size_t length)
 {
   RxBuff.write(buff, length);
   dataReady = true;

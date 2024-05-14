@@ -11,9 +11,7 @@
 
 #include "api.h"
 #include "adapterCBRove.h"
-
-
-
+#include "ErrorManager.h"
 
 /**
  * @brief Constructs a new instance of the AdapterCBRoveClass class.
@@ -88,7 +86,7 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 
 
      mInitialized = true;
-
+     setStatusCode(StatusCode::STInitialized);
 }
 
 
@@ -101,6 +99,7 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 void AdapterCBRoveClass::task()
 {
      if (!checkInitialized()) return;
+
      mServoPositions[0] = st.ReadPos(mIDs[0]);
      mServoPositions[1] = st.ReadPos(mIDs[1]);
      
@@ -114,7 +113,11 @@ void AdapterCBRoveClass::task()
      switch (mControlMode)
      {
      case SCMPosition:
-     st.SyncWritePosEx(mIDs,2,setPositions,(u16*)setSpeeds,setAccs);
+          st.SyncWritePosEx(mIDs,2,setPositions,(u16*)setSpeeds,setAccs);
+          if (st.getErr())
+          {
+               THROW_RETURN(ErrorCode::ERServoNACK,);
+          }
      //st.WritePosEx(mIDs[0], setPositions[0], setSpeeds[0], setAccs[0]);
      /*
           if(mServoPositions[0]<=mSetPositions[0]+5 && mServoPositions[0]>=mSetPositions[0]-5
@@ -130,19 +133,27 @@ void AdapterCBRoveClass::task()
                setSpeeds[0] = 0;
                setAccs[0] = 0;
           }
-          st.WriteSpe(mIDs[0], setSpeeds[0], setAccs[0]);
+          if (!st.WriteSpe(mIDs[0], setSpeeds[0], setAccs[0]))
+          {
+               THROW_RETURN(ErrorCode::ERServoXNACK,);
+          }
           if(mServoPositions[1] >= mMaxPosY[0] || mServoPositions[1] <= mMaxPosY[1])
           {
                setSpeeds[1] = 0;
                setAccs[1] = 0;
           }
-          st.WriteSpe(mIDs[1], setSpeeds[1], setAccs[1]);
+          if (!st.WriteSpe(mIDs[1], setSpeeds[1], setAccs[1]))
+          {
+               THROW_RETURN(ErrorCode::ERServoYNACK,);
+          }
           break;
      default:
           break;
      } 
 
-     
+     if (getErrorCode() == ErrorCode::ERServoNACK ||
+          getErrorCode() == ErrorCode::ERServoXNACK ||
+          getErrorCode() == ErrorCode::ERServoYNACK) setErrorCode(ErrorCode::ERNone);
 
 }
 
@@ -281,8 +292,16 @@ bool AdapterCBRoveClass::setServoAccY(u8 acc)
 bool AdapterCBRoveClass::setServoMode(bool mode)
 {
      if (!checkInitialized()) return false;
-     st.WheelMode(SERVO_X, mode);
-     st.WheelMode(SERVO_Y, mode);
+     int xAck = st.WheelMode(SERVO_X, mode);
+     int yAck = st.WheelMode(SERVO_Y, mode);
+     // if ((xAck + yAck) == 0) THROW_RETURN(ErrorCode::ERServoNACK, false);
+     // if (!xAck) THROW_RETURN(ErrorCode::ERServoXNACK, false);
+     // if (!yAck) THROW_RETURN(ErrorCode::ERServoYNACK, false);
+     
+     if (getErrorCode() == ErrorCode::ERServoNACK ||
+          getErrorCode() == ErrorCode::ERServoXNACK ||
+          getErrorCode() == ErrorCode::ERServoYNACK) setErrorCode(ErrorCode::ERNone);
+     
      mServoModes[0] = mode;
      mServoModes[1] = mode;
      return true;
@@ -800,9 +819,14 @@ Servo &AdapterCBRoveClass::getServoY()
 bool AdapterCBRoveClass::checkInitialized()
 {
      if (mInitialized) 
+     {
+          if (getErrorCode() == ErrorCode::ERAdapterNotInit) setErrorCode(ErrorCode::ERNone);
           return true;
+     }
      else
-          return false;
+     {
+          THROW_RETURN(ErrorCode::ERAdapterNotInit, false);
+     }
 }
 
 RGB AdapterCBRoveClass::getRGBLed(Int led)
@@ -820,5 +844,24 @@ bool AdapterCBRoveClass::setRGBLed(RGBLed color)
      return true;
 }
 
+StatusCode AdapterCBRoveClass::getStatusCode()
+{
+    return mStatus;
+}
+
+void AdapterCBRoveClass::setStatusCode(StatusCode status)
+{
+     mStatus = status;
+}
+
+ErrorCode AdapterCBRoveClass::getErrorCode()
+{
+    return mError;
+}
+
+void AdapterCBRoveClass::setErrorCode(ErrorCode error)
+{
+     mError = error;
+}
 
 AdapterCBRoveClass AdapterCBRove = AdapterCBRoveClass();

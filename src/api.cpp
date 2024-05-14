@@ -112,7 +112,7 @@ Bool_ getLEDStrobe(Void _)
 
 Report getReport(Void _)
 {
-    return { getServoPosition({}), 0, 0 };
+    return { getServoPosition({}), AdapterCBRove.getStatusCode(), AdapterCBRove.getErrorCode() };
 }
 
 UShort getWinchMode(Void _)
@@ -190,4 +190,11 @@ Bool_ setRGBLed(RGBLed color)
     return { AdapterCBRove.setRGBLed(color) };
 }
 
+Bool_ configure(Configuration config)
+{
+    AdapterCBRove.setMinMaxServoX(config.xBounds.lower, config.xBounds.upper);
+    AdapterCBRove.setMinMaxServoY(config.yBounds.lower, config.yBounds.upper);
+    AdapterCBRove.setStatusCode(StatusCode::STConfigured);
+    return {true};
+}
 

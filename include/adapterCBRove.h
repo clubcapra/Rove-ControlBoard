@@ -36,8 +36,6 @@ class AdapterCBRoveClass {
 private:
 
     bool checkInitialized();
-    void setMinMaxServoX(s16 max, s16 min);
-    void setMinMaxServoY(s16 max, s16 min);
 
 
 
@@ -82,7 +80,8 @@ private:
     RGBLed setRGBLedState;
 
     volatile ServoControlMode mControlMode = SCMPosition;
-    volatile u16 mError = 0;
+    volatile ErrorCode mError = ErrorCode::ERNone;
+    volatile StatusCode mStatus = StatusCode::STNotInitialized;
 
 public:
     // Constructor
@@ -102,6 +101,8 @@ public:
     bool setServoPositionZero();
     bool setServoAccX(u8 acc);
     bool setServoAccY(u8 acc);
+    void setMinMaxServoX(s16 max, s16 min);
+    void setMinMaxServoY(s16 max, s16 min);
 
     bool setServoMode(bool mode); //1 = wheel mode, 0 = joint mode
     bool getServoMode();
@@ -146,7 +147,11 @@ public:
     //Servo& getServoX();
     //Servo& getServoY();
 
-  
+    StatusCode getStatusCode();
+    void setStatusCode(StatusCode status);
+
+    ErrorCode getErrorCode();
+    void setErrorCode(ErrorCode error);
 };
 
 extern AdapterCBRoveClass AdapterCBRove;
