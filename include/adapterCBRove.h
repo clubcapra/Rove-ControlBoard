@@ -5,6 +5,8 @@
 #include "GPIO.h"
 #include "Servo/Servo.h"
 #include "winchMotor.h"
+#include "ARGB.h"
+#include <string>
 
 
 #define PIN_LED_AVANT 4
@@ -25,12 +27,79 @@
 #define SERVO_X 1
 #define SERVO_Y 2
 
+#define LED_COUNT 5
+
 //#define MAX_POS_X 4095
 //#define MIN_POS_X -4095
 //#define MAX_POS_Y 4095
 //#define MIN_POS_Y -4095
 
+class ServoNACKException : public std::exception
+{
+public:
+    bool xServo;
+    bool yServo;
+    ServoNACKException(bool xServo, bool yServo)
+    {
+        this->xServo = xServo;
+        this->yServo = yServo;
+    }
 
+    const char* what() const throw()
+    {
+        if (this->xServo && this->yServo) return "Global servo failed to ack";
+        if (this->xServo) return "Servo x failed to ack";
+        if (this->yServo) return "Servo y failed to ack";
+        return "Unknown servo ack error";
+    }
+};
+
+class AdapterNotInitializedException : public std::exception
+{
+public:
+    AdapterNotInitializedException(){}
+    const char* what() const throw() { return "Adapter not initialized"; }
+};
+
+class RGBIndexOutOfRangeException : public std::exception
+{
+public:
+    int index;
+    RGBIndexOutOfRangeException(int index)
+    {
+        this->index = index;
+    }
+    const char* what() const throw()
+    {
+        auto res = std::string("Led index out of range. Must be between 0 and ") +
+            std::to_string(LED_COUNT) +
+            " but was " +
+            std::to_string(this->index);
+        return res.c_str();
+    }
+};
+
+class RGBException : public std::exception
+{
+public:
+    ARGB_STATE state;
+    RGBException(ARGB_STATE state)
+    {
+        this->state = state;
+    }
+    const char* what() const throw()
+    {
+        switch (state)
+        {
+        case ARGB_BUSY:
+            return "ARGB was busy";
+        case ARGB_PARAM_ERR:
+            return "ARGB had a parameter error";
+        default:
+            return "No error, check your code";
+        }
+    }
+};
 
 class AdapterCBRoveClass {
 private:
@@ -48,7 +117,7 @@ private:
 
     SMS_STS st; 
     volatile bool mInitialized = false;
-    u8 mIDs[2] = {1, 2};
+    u8 mIDs[2] = {SERVO_X, SERVO_Y};
     s16 mServoPositions[2] = {0};
     
     volatile s16 mSetPositions[2] = {0};
@@ -74,10 +143,7 @@ private:
     GPIO gpioB;
     GPIO gpioA;
     //RGB setRGBLed;
-    RGB mRGBLed;
-
-    RGBLed mRGBLedState;
-    RGBLed setRGBLedState;
+    RGB mLeds[LED_COUNT] = {};
 
     volatile ServoControlMode mControlMode = SCMPosition;
     volatile ErrorCode mError = ErrorCode::ERNone;
@@ -86,12 +152,15 @@ private:
 public:
     // Constructor
     AdapterCBRoveClass();
+    AdapterCBRoveClass(const AdapterCBRoveClass&) = delete;
+    AdapterCBRoveClass(AdapterCBRoveClass&&) = default;
 
     AdapterCBRoveClass &operator=(const AdapterCBRoveClass& other);
 
     // Destructor
     ~AdapterCBRoveClass();
 
+    
     void init(UART_HandleTypeDef *huartServo);
 
     void task();
@@ -140,18 +209,21 @@ public:
     bool setControlMode(ServoControlMode mode);
     ServoControlMode getControlMode();
 
-    RGB getRGBLed(Int led);
+    RGB getRGBLed(int led);
 
-    bool setRGBLed(RGBLed color);
+    bool setRGBLed(int led, RGB color);
 
     //Servo& getServoX();
     //Servo& getServoY();
 
-    StatusCode getStatusCode();
+    StatusCode getStatusCode() const;
     void setStatusCode(StatusCode status);
 
-    ErrorCode getErrorCode();
+    ErrorCode getErrorCodes() const;
+    void clearErrorCodes();
+    bool getErrorCode(ErrorCode error) const;
     void setErrorCode(ErrorCode error);
+    void unsetErrorCode(ErrorCode error);
 };
 
 extern AdapterCBRoveClass AdapterCBRove;

@@ -11,7 +11,8 @@
 
 #include "api.h"
 #include "adapterCBRove.h"
-#include "ErrorManager.h"
+#include "ARGB.h"
+
 
 /**
  * @brief Constructs a new instance of the AdapterCBRoveClass class.
@@ -52,7 +53,10 @@ AdapterCBRoveClass::~AdapterCBRoveClass()
 
 
 /**
- * Initializes the AdapterCBRoveClass object.
+ * @brief Initializes the AdapterCBRoveClass object.
+ * 
+ * @param huartServo 
+ * @throws ServoNACKException If the servos are unable to ack
  */
 void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 {
@@ -78,13 +82,10 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
      gpioC.writePin(PIN_GPIO_3, 0);
 
      st.pSerial=huartServo;
-     setMinMaxServoX((4095*2), (-4095*2));
+     // setMinMaxServoX((4095*2), (-4095*2));
 
      //@todo: set min max servo Y
-     setMinMaxServoY(4095, -4095);
-     setServoMode(0);
-
-
+     // setMinMaxServoY(4095, -4095);
      mInitialized = true;
      setStatusCode(StatusCode::STInitialized);
 }
@@ -92,9 +93,12 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 
 
 /**
- * Executes the task for the AdapterCBRoveClass class.
+ * @brief Executes the task for the AdapterCBRoveClass class.
  * This function is responsible for performing the necessary operations for the AdapterCBRoveClass class.
  * It should be called periodically to ensure the proper functioning of the class.
+ * 
+ * @throws AdapterNotInitializedException If adapter is not initialized
+ * @throws ServoNACKException If the servo(s) are unable to ack
  */
 void AdapterCBRoveClass::task()
 {
@@ -116,7 +120,12 @@ void AdapterCBRoveClass::task()
           st.SyncWritePosEx(mIDs,2,setPositions,(u16*)setSpeeds,setAccs);
           if (st.getErr())
           {
-               THROW_RETURN(ErrorCode::ERServoNACK,);
+               setErrorCode(ErrorCode::ERServoNACK);
+               throw ServoNACKException(true, true);
+          }
+          else
+          {
+               unsetErrorCode(ErrorCode::ERServoNACK);
           }
      //st.WritePosEx(mIDs[0], setPositions[0], setSpeeds[0], setAccs[0]);
      /*
@@ -133,27 +142,31 @@ void AdapterCBRoveClass::task()
                setSpeeds[0] = 0;
                setAccs[0] = 0;
           }
+
           if (!st.WriteSpe(mIDs[0], setSpeeds[0], setAccs[0]))
-          {
-               THROW_RETURN(ErrorCode::ERServoXNACK,);
-          }
+               setErrorCode(ErrorCode::ERServoXNACK);
+          else
+               unsetErrorCode(ErrorCode::ERServoXNACK);
+
           if(mServoPositions[1] >= mMaxPosY[0] || mServoPositions[1] <= mMaxPosY[1])
           {
                setSpeeds[1] = 0;
                setAccs[1] = 0;
           }
+
           if (!st.WriteSpe(mIDs[1], setSpeeds[1], setAccs[1]))
+               setErrorCode(ErrorCode::ERServoYNACK);
+          else
+               unsetErrorCode(ErrorCode::ERServoYNACK);
+          
+          if (getErrorCode(ErrorCode::ERServoXNACK) || getErrorCode(ErrorCode::ERServoYNACK))
           {
-               THROW_RETURN(ErrorCode::ERServoYNACK,);
+               throw ServoNACKException(getErrorCode(ErrorCode::ERServoXNACK), getErrorCode(ErrorCode::ERServoYNACK));
           }
           break;
      default:
           break;
      } 
-
-     if (getErrorCode() == ErrorCode::ERServoNACK ||
-          getErrorCode() == ErrorCode::ERServoXNACK ||
-          getErrorCode() == ErrorCode::ERServoYNACK) setErrorCode(ErrorCode::ERNone);
 
 }
 
@@ -197,6 +210,7 @@ void AdapterCBRoveClass::setMinMaxServoY(s16 max, s16 min)
  * @param positionX The desired position of the servo motor along the X-axis.
  * @param positionY The desired position of the servo motor along the Y-axis.
  * @return True if the servo position was set successfully, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setServoPosition(s16 positionX, s16 positionY)
 {
@@ -226,6 +240,7 @@ bool AdapterCBRoveClass::setServoPosition(s16 positionX, s16 positionY)
  * It can be used to reset the servo to its initial position.
  *
  * @return true if the servo position was successfully set to zero, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setServoPositionZero()
 {
@@ -241,6 +256,7 @@ bool AdapterCBRoveClass::setServoPositionZero()
  * @param speedX The speed value for the X direction.
  * @param speedY The speed value for the Y direction.
  * @return True if the speed was set successfully, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setServoSpeed(s16 speedX, s16 speedY)
 {
@@ -256,6 +272,7 @@ bool AdapterCBRoveClass::setServoSpeed(s16 speedX, s16 speedY)
  *
  * @param acc The acceleration value to set.
  * @return True if the acceleration value was set successfully, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setServoAccX(u8 acc)
 {
@@ -270,6 +287,7 @@ bool AdapterCBRoveClass::setServoAccX(u8 acc)
  *
  * @param acc The acceleration value to set.
  * @return True if the acceleration value was set successfully, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setServoAccY(u8 acc)
 {
@@ -288,19 +306,19 @@ bool AdapterCBRoveClass::setServoAccY(u8 acc)
  *
  * @param mode The servo mode to set. True for servo mode, false for non-servo mode.
  * @return True if the servo mode was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
+ * @throws ServoNACKException If servo(s) are unable to ack
  */
 bool AdapterCBRoveClass::setServoMode(bool mode)
 {
      if (!checkInitialized()) return false;
      int xAck = st.WheelMode(SERVO_X, mode);
      int yAck = st.WheelMode(SERVO_Y, mode);
-     // if ((xAck + yAck) == 0) THROW_RETURN(ErrorCode::ERServoNACK, false);
-     // if (!xAck) THROW_RETURN(ErrorCode::ERServoXNACK, false);
-     // if (!yAck) THROW_RETURN(ErrorCode::ERServoYNACK, false);
+
+     if (!xAck) setErrorCode(ErrorCode::ERServoXNACK);
+     if (!yAck) setErrorCode(ErrorCode::ERServoYNACK);
+     if (!xAck || !yAck) throw ServoNACKException(!xAck, !yAck);
      
-     if (getErrorCode() == ErrorCode::ERServoNACK ||
-          getErrorCode() == ErrorCode::ERServoXNACK ||
-          getErrorCode() == ErrorCode::ERServoYNACK) setErrorCode(ErrorCode::ERNone);
      
      mServoModes[0] = mode;
      mServoModes[1] = mode;
@@ -314,6 +332,7 @@ bool AdapterCBRoveClass::setServoMode(bool mode)
  * This function returns the current servo mode.
  * 
  * @return true if the servo mode is enabled, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getServoMode()
 {
@@ -326,6 +345,7 @@ bool AdapterCBRoveClass::getServoMode()
  * Retrieves the position of the servo in the X-axis.
  *
  * @return The position of the servo in the X-axis.
+ * @throws AdapterNotInitializedException If not initialized
  */
 s16 AdapterCBRoveClass::getServoPositionX()
 {
@@ -337,6 +357,7 @@ s16 AdapterCBRoveClass::getServoPositionX()
  * Retrieves the position of the servo in the Y-axis.
  *
  * @return The position of the servo in the Y-axis.
+ * @throws AdapterNotInitializedException If not initialized
  */
 s16 AdapterCBRoveClass::getServoPositionY()
 {
@@ -349,6 +370,7 @@ s16 AdapterCBRoveClass::getServoPositionY()
  * Retrieves the speed of the X-axis servo.
  *
  * @return The speed of the X-axis servo.
+ * @throws AdapterNotInitializedException If not initialized
  */
 s16 AdapterCBRoveClass::getServoSpeedX()
 {
@@ -361,6 +383,7 @@ s16 AdapterCBRoveClass::getServoSpeedX()
  * Retrieves the servo speed in the Y-axis.
  *
  * @return The servo speed in the Y-axis.
+ * @throws AdapterNotInitializedException If not initialized
  */
 s16 AdapterCBRoveClass::getServoSpeedY()
 {
@@ -373,6 +396,7 @@ s16 AdapterCBRoveClass::getServoSpeedY()
  * Retrieves the acceleration value of the servo in the X-axis.
  *
  * @return The acceleration value of the servo in the X-axis.
+ * @throws AdapterNotInitializedException If not initialized
  */
 u8 AdapterCBRoveClass::getServoAccX()
 {
@@ -385,6 +409,7 @@ u8 AdapterCBRoveClass::getServoAccX()
  * Retrieves the acceleration value of the servo in the Y-axis.
  *
  * @return The acceleration value of the servo in the Y-axis.
+ * @throws AdapterNotInitializedException If not initialized
  */
 u8 AdapterCBRoveClass::getServoAccY()
 {
@@ -398,6 +423,7 @@ u8 AdapterCBRoveClass::getServoAccY()
  *
  * @param state The desired state of the front LED. True for ON, false for OFF.
  * @return True if the state was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setLEDFront(bool state)
 {
@@ -412,6 +438,7 @@ bool AdapterCBRoveClass::setLEDFront(bool state)
  *
  * @param state The desired state of the LED backlight.
  * @return True if the LED backlight state was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setLEDBack(bool state)
 {
@@ -429,6 +456,7 @@ bool AdapterCBRoveClass::setLEDBack(bool state)
  *
  * @param state The desired state of the LED strobe. Set to true to turn it on, false to turn it off.
  * @return true if the LED strobe state was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setLEDStrobe(bool state)
 {
@@ -443,6 +471,7 @@ bool AdapterCBRoveClass::setLEDStrobe(bool state)
  *
  * @param state The state to set for the winch.
  * @return True if the winch state was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setWinchState(WinchMode state)
 {
@@ -473,10 +502,11 @@ bool AdapterCBRoveClass::setWinchState(WinchMode state)
  * Retrieves the state of the winch.
  *
  * @return The state of the winch as a uint8_t value.
+ * @throws AdapterNotInitializedException If not initialized
  */
 WinchMode AdapterCBRoveClass::getWinchState()
 {
-     //if (!checkInitialized()) return 0;
+     if (!checkInitialized()) return WinchMode::WMFreeWheel;
      return mWinchState;
 }
 
@@ -489,6 +519,7 @@ WinchMode AdapterCBRoveClass::getWinchState()
  *
  * @param state The lock state to set. `true` for locked, `false` for unlocked.
  * @return `true` if the lock state was successfully set, `false` otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setLockWinch1(bool state)
 {
@@ -505,6 +536,7 @@ bool AdapterCBRoveClass::setLockWinch1(bool state)
  *
  * @param state The desired lock state of Winch2.
  * @return True if the lock state was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setLockWinch2(bool state)
 {
@@ -520,6 +552,7 @@ bool AdapterCBRoveClass::setLockWinch2(bool state)
  * This function returns the lock status of Winch 1. It indicates whether the winch is locked or not.
  * 
  * @return true if Winch 1 is locked, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getLockWinch1()
 {
@@ -534,6 +567,7 @@ bool AdapterCBRoveClass::getLockWinch1()
  * This function returns the lock status of Winch2. It indicates whether Winch2 is locked or not.
  * 
  * @return true if Winch2 is locked, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getLockWinch2()
 {
@@ -546,6 +580,7 @@ bool AdapterCBRoveClass::getLockWinch2()
  * Retrieves the status of the front LED.
  *
  * @return true if the front LED is turned on, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getLEDFront()
 {
@@ -569,6 +604,7 @@ bool AdapterCBRoveClass::getLEDFront()
  * Retrieves the status of the LED backlight.
  *
  * @return true if the LED backlight is on, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getLEDBack()
 {
@@ -593,6 +629,7 @@ bool AdapterCBRoveClass::getLEDBack()
  * Retrieves the current state of the LED strobe.
  *
  * @return true if the LED strobe is enabled, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getLEDStrobe()
 {
@@ -621,6 +658,7 @@ bool AdapterCBRoveClass::getLEDStrobe()
  *
  * @param state The state to set GPIO1 to.
  * @return True if the state was set successfully, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setGPIO1(bool state)
 {
@@ -637,6 +675,7 @@ bool AdapterCBRoveClass::setGPIO1(bool state)
  *
  * @param state The state to set GPIO2 to.
  * @return True if the state was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setGPIO2(bool state)
 {
@@ -653,6 +692,7 @@ bool AdapterCBRoveClass::setGPIO2(bool state)
  *
  * @param state The desired state of GPIO3. True for high (on) state, false for low (off) state.
  * @return True if the state of GPIO3 was successfully set, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::setGPIO3(bool state)
 {
@@ -668,6 +708,7 @@ bool AdapterCBRoveClass::setGPIO3(bool state)
  * If GPIO1 is HIGH, it returns true. If GPIO1 is LOW or an invalid state, it returns false.
  * 
  * @return The state of GPIO1. True if HIGH, false if LOW or invalid state.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getGPIO1()
 {
@@ -694,6 +735,7 @@ bool AdapterCBRoveClass::getGPIO1()
  * This function retrieves the current value of GPIO2.
  *
  * @return The value of GPIO2.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getGPIO2()
 {
@@ -719,6 +761,7 @@ bool AdapterCBRoveClass::getGPIO2()
  * This function retrieves the current value of GPIO3.
  *
  * @return The value of GPIO3.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::getGPIO3()
 {
@@ -744,6 +787,8 @@ bool AdapterCBRoveClass::getGPIO3()
  *
  * @param mode The control mode to set.
  * @return True if the control mode was set successfully, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
+ * @throws ServoNACKException If servo(s) are unable to ack
  */
 bool AdapterCBRoveClass::setControlMode(ServoControlMode mode)
 {
@@ -768,6 +813,7 @@ bool AdapterCBRoveClass::setControlMode(ServoControlMode mode)
  * Retrieves the control mode of the AdapterCBRoveClass.
  *
  * @return The control mode as a uint32_t value.
+ * @throws AdapterNotInitializedException If not initialized
  */
 ServoControlMode AdapterCBRoveClass::getControlMode()
 {
@@ -815,36 +861,74 @@ Servo &AdapterCBRoveClass::getServoY()
  * the object is initialized or not.
  * 
  * @return true if the AdapterCBRoveClass object is initialized, false otherwise.
+ * @throws AdapterNotInitializedException If not initialized
  */
 bool AdapterCBRoveClass::checkInitialized()
 {
      if (mInitialized) 
      {
-          if (getErrorCode() == ErrorCode::ERAdapterNotInit) setErrorCode(ErrorCode::ERNone);
+          if (getErrorCode(ErrorCode::ERAdapterNotInit)) unsetErrorCode(ErrorCode::ERAdapterNotInit);
           return true;
      }
      else
      {
-          THROW_RETURN(ErrorCode::ERAdapterNotInit, false);
+          setErrorCode(ErrorCode::ERAdapterNotInit);
+          throw AdapterNotInitializedException();
      }
 }
 
-RGB AdapterCBRoveClass::getRGBLed(Int led)
+/**
+ * @brief Gets the color of an led
+ * 
+ * @param led Led index
+ * @return RGB The color of the led
+ * 
+ * @throws AdapterNotInitializedException If not initialized
+ * @throws RGBIndexOutOfRangeException If led index is out of range
+ */
+RGB AdapterCBRoveClass::getRGBLed(int led)
 {
-     //if(!checkInitialized()) return RGBLed();
-     //return RGBLed(gpioA, gpioB, gpioC);
-     
-     return mRGBLed;
+     if(!checkInitialized()) return {};
+     if (led < 0 || led >= LED_COUNT)
+     {
+          setErrorCode(ErrorCode::ERRGBInvalidIndex);
+          throw RGBIndexOutOfRangeException(led);
+     }
+     return mLeds[led];
 }
 
-bool AdapterCBRoveClass::setRGBLed(RGBLed color)
+/**
+ * @brief Gets the color of an led
+ * 
+ * @param led Led index
+ * @param RGB Color to assign to the led
+ * @return bool true if successful
+ * 
+ * @throws AdapterNotInitializedException If not initialized
+ * @throws RGBIndexOutOfRangeException If led index is out of range
+ * @throws RGBException If failed to send the color
+ */
+bool AdapterCBRoveClass::setRGBLed(int led, RGB color)
 {
      if(!checkInitialized()) return false;
-     //return color.setRGBLed();
+     if (led < 0 || led >= LED_COUNT)
+     {
+          setErrorCode(ErrorCode::ERRGBInvalidIndex);
+          throw RGBIndexOutOfRangeException(led);
+     }
+     else { unsetErrorCode(ErrorCode::ERRGBInvalidIndex); }
+     ARGB_SetRGB(led, color.r, color.g, color.b);
+     auto status = ARGB_Show();
+     if (status == ARGB_STATE::ARGB_PARAM_ERR) 
+     {
+          setErrorCode(ErrorCode::ERRGBParam);
+          throw RGBException(status);
+     }
+     else { unsetErrorCode(ErrorCode::ERRGBParam); }
      return true;
 }
 
-StatusCode AdapterCBRoveClass::getStatusCode()
+StatusCode AdapterCBRoveClass::getStatusCode() const
 {
     return mStatus;
 }
@@ -854,14 +938,29 @@ void AdapterCBRoveClass::setStatusCode(StatusCode status)
      mStatus = status;
 }
 
-ErrorCode AdapterCBRoveClass::getErrorCode()
+bool AdapterCBRoveClass::getErrorCode(ErrorCode error) const
+{
+     return (mError & error) == error;
+}
+
+ErrorCode AdapterCBRoveClass::getErrorCodes() const
 {
     return mError;
 }
 
-void AdapterCBRoveClass::setErrorCode(ErrorCode error)
+void AdapterCBRoveClass::clearErrorCodes()
 {
-     mError = error;
+     mError = ErrorCode::ERNone;
 }
 
-AdapterCBRoveClass AdapterCBRove = AdapterCBRoveClass();
+void AdapterCBRoveClass::setErrorCode(ErrorCode error)
+{
+     mError = (ErrorCode)(mError | error);
+}
+
+void AdapterCBRoveClass::unsetErrorCode(ErrorCode error)
+{
+     mError = (ErrorCode)(mError & ~error);
+}
+
+AdapterCBRoveClass AdapterCBRove{};

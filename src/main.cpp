@@ -8,7 +8,6 @@
 #include "api.h"
 #include "adapterCBRove.h"
 #include "Servo/Servo.h"
-#include "ErrorManager.h"
 
 #define TIMMER_WHILE 1 // 0 = 100ms, 1 = 100us
 
@@ -90,7 +89,18 @@ int main(void)
   canTxData[0] = 50;  
   canTxData[1] = 0xAA;
   
-  AdapterCBRove.init(&huart6);
+  while (1)
+  {
+    try
+    {
+      AdapterCBRove.init(&huart6);
+      break;
+    }
+    catch(const ServoNACKException& e)
+    {
+    }
+
+  }
   
   CommandManager.setCommands(commands, COMMANDS_COUNT);
   CommandManager.setSendCB(&sendCallback);
@@ -99,7 +109,6 @@ int main(void)
   //st.WritePosEx(1,20,20,0);
   while (1)
   {
-    
     handleCommand();
     /*
     if(timerApi >= 50)
@@ -108,11 +117,24 @@ int main(void)
       
     }*/
     //Temps de 100us
+    int x=0;
     if(timerInt >= 1000)
 		{
       timerInt=0;
       
-      AdapterCBRove.task();
+      try
+      {
+        AdapterCBRove.task();
+      }
+      catch(const AdapterNotInitializedException& e)
+      {
+        AdapterCBRove.init(&huart6);
+      }
+      catch(const ServoNACKException& e)
+      {
+        AdapterCBRove.setStatusCode(StatusCode::STNotInitialized);
+      }
+      
       
     }
 
@@ -491,31 +513,28 @@ void handleCommand()
 {
   if (!dataReady) return;
 
-  if (!CommandManager.handleCommand(RxBuff))
+  try
   {
-    switch (CommandManager.status())
-    {
-    case _CommandManager::CMD_ID_OUT_OF_RANGE: // Command id out of range
+    CommandManager.handleCommand(RxBuff);
+  }
+  catch(const CommandIDOutOfRangeException& e)
+  {
       // This can either be from a transmission issue or from an API version mismatch
       while (RxBuff.available()) RxBuff.read();
-      break;
-    case _CommandManager::CALLBACK_NULL: // The sendCB callback is null
+  }
+  catch(const CallbackNullException& e)
+  {
       // You forgot to set the callback: CommandManager.setSendCB(&sendCallback)
       Error_Handler();
-      break;
-    case _CommandManager::PARAM_SIZE_MISMATCH: // Not enough data to decode parameter
-      // This can simply be because the message is incomplete
-      break;
-    case _CommandManager::PEEK_ID_ERROR:
-    case _CommandManager::READ_ID_ERROR:
-    case _CommandManager::READ_PARAM_ERROR:
-      // These are problems that occur while reading the buffer
-      while (RxBuff.available()) RxBuff.read();
-      break;
-    default:
-      break;
-    }
   }
+  catch(const ParamSizeMismatchException& e)
+  { /* This can simply be because the message is incomplete */ }
+  catch(const PeekIDException& e)
+    { while (RxBuff.available()) RxBuff.read(); }
+  catch(const ReadIDException& e)
+    { while (RxBuff.available()) RxBuff.read(); }
+  catch(const ReadParamException& e)
+    { while (RxBuff.available()) RxBuff.read(); }
   dataReady = false;
 }
 
