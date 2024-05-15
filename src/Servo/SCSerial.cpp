@@ -115,7 +115,7 @@ void SCSerial::wFlushSCS()
 {
 	if(wLen){
 		//HAL_NVIC_EnableIRQ(USART6_IRQn);
-		HAL_UART_Transmit_IT(pSerial,wBuf, wLen);
+		HAL_UART_Transmit(pSerial,wBuf, wLen, 1000);
 		wLen = 0;
 	}
 }

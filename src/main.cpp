@@ -35,7 +35,7 @@ static void MX_USART6_UART_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_TIM1_Init(void);
 
-volatile bool dataReady = false;
+volatile int dataReady = 0;
 Buffer TxBuff = Buffer(MAX_DECODED_SIZE*2);
 Buffer RxBuff = Buffer(MAX_DECODED_SIZE*2);
 void sendCallback(uint8_t* buff, size_t length);
@@ -70,7 +70,7 @@ int main(void)
   
   //st.pSerial = &huart6;
 
-  //LED led2((uint32_t *)(0x40020000UL),5);
+  //LED led2((uint32_t *)(0x40020400UL),5);
   GPIO gpioC((uint32_t *)(0x40020800UL));
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
@@ -500,16 +500,16 @@ void sendCallback(uint8_t* buff, size_t length)
 void onDataRecieved(uint8_t *buff, size_t length)
 {
   RxBuff.write(buff, length);
-  dataReady = true;
+  dataReady ++;
 }
 
 void handleCommand()
 {
   if (!dataReady) return;
-  CommandManager.handleCommand(RxBuff);
+  
   try
   {
-    
+    CommandManager.handleCommand(RxBuff);
   }
   catch(const CommandIDOutOfRangeException& e)
   {
@@ -522,14 +522,16 @@ void handleCommand()
       Error_Handler();
   }
   catch(const ParamSizeMismatchException& e)
-  { /* This can simply be because the message is incomplete */ }
+  { 
+    int x=0;
+    /* This can simply be because the message is incomplete */ }
   catch(const PeekIDException& e)
     { while (RxBuff.available()) RxBuff.read(); }
   catch(const ReadIDException& e)
     { while (RxBuff.available()) RxBuff.read(); }
   catch(const ReadParamException& e)
     { while (RxBuff.available()) RxBuff.read(); }
-  dataReady = false;
+  dataReady --;
 }
 
 void Error_Handler(void)
