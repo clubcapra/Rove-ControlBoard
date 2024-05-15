@@ -1,5 +1,3 @@
-
-
 #include "main.h"
 
 #include "GPIO.h"
@@ -48,8 +46,8 @@ volatile uint16_t timerInt=0;
 //volatile uint16_t timerApi=0;
 SMS_STS st;
 
-uint8_t canRxData[8];
-uint8_t canTxData[8];
+uint8_t canRxData[8]={0};
+uint8_t canTxData[8]={0};
 uint32_t TxMailbox;
 volatile int datacheck = 0;
 
@@ -85,10 +83,6 @@ int main(void)
   TxHeader.RTR = CAN_RTR_DATA;
 
 
-  TxHeader.DLC = 2;
-  canTxData[0] = 50;  
-  canTxData[1] = 0xAA;
-  
   while (1)
   {
     try
@@ -117,14 +111,14 @@ int main(void)
       
     }*/
     //Temps de 100us
-    int x=0;
+
     if(timerInt >= 1000)
 		{
       timerInt=0;
-      
+      /*
       try
       {
-        AdapterCBRove.task();
+        AdapterCBRove.updateServo();
       }
       catch(const AdapterNotInitializedException& e)
       {
@@ -134,7 +128,7 @@ int main(void)
       {
         AdapterCBRove.setStatusCode(StatusCode::STNotInitialized);
       }
-      
+      */
       
     }
 
@@ -512,10 +506,10 @@ void onDataRecieved(uint8_t *buff, size_t length)
 void handleCommand()
 {
   if (!dataReady) return;
-
+  CommandManager.handleCommand(RxBuff);
   try
   {
-    CommandManager.handleCommand(RxBuff);
+    
   }
   catch(const CommandIDOutOfRangeException& e)
   {
