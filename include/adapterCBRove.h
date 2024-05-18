@@ -95,7 +95,7 @@ public:
 
     void init(UART_HandleTypeDef *huartServo);
 
-    void task();
+    void updateServo();
 
     bool setServoPosition(s16 positionX, s16 positionY);
     bool setServoSpeed(s16 speedX, s16 speedY);

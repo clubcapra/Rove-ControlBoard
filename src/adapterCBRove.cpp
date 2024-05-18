@@ -94,11 +94,11 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 
 
 /**
- * Executes the task for the AdapterCBRoveClass class.
+ * Executes the updateServo for the AdapterCBRoveClass class.
  * This function is responsible for performing the necessary operations for the AdapterCBRoveClass class.
  * It should be called periodically to ensure the proper functioning of the class.
  */
-void AdapterCBRoveClass::task()
+void AdapterCBRoveClass::updateServo()
 {
      if (!checkInitialized()) return;
      mServoPositions[0] = st.ReadPos(mIDs[0]);
@@ -204,6 +204,7 @@ bool AdapterCBRoveClass::setServoPosition(s16 positionX, s16 positionY)
      else
           mSetPositions[1] = positionY;
 
+     updateServo();
      return true;
 }
 
@@ -236,6 +237,8 @@ bool AdapterCBRoveClass::setServoSpeed(s16 speedX, s16 speedY)
      if (!checkInitialized()) return false;
      mSetSpeeds[0] = speedX;
      mSetSpeeds[1] = speedY;
+
+     updateServo();
      return true;
 }
 
@@ -311,7 +314,8 @@ bool AdapterCBRoveClass::getServoMode()
 s16 AdapterCBRoveClass::getServoPositionX()
 {
      if (!checkInitialized()) return 0;
-     return mServoPositions[0];
+     mServoPositions[(SERVO_X -1)] = st.ReadPos(mIDs[(SERVO_X -1)]);
+     return mServoPositions[(SERVO_X -1)];
 }
 
 /**
@@ -322,7 +326,8 @@ s16 AdapterCBRoveClass::getServoPositionX()
 s16 AdapterCBRoveClass::getServoPositionY()
 {
      if (!checkInitialized()) return 0;
-     return mServoPositions[1];
+     mServoPositions[(SERVO_Y -1)] = st.ReadPos(mIDs[(SERVO_Y -1)]);
+     return mServoPositions[(SERVO_Y -1)];
 }
 
 

@@ -111,7 +111,7 @@ int main(void)
 		{
       timerInt=0;
       
-      AdapterCBRove.task();
+      //AdapterCBRove.updateServo();
       
     }
 
