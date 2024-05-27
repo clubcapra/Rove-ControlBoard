@@ -85,6 +85,7 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
      //@todo: set min max servo Y
      setMinMaxServoY(4095, -4095);
      setServoMode(0);
+     setControlMode(SCMPosition);
 
 
      mInitialized = true;
@@ -101,8 +102,6 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 void AdapterCBRoveClass::updateServo()
 {
      if (!checkInitialized()) return;
-     mServoPositions[0] = st.ReadPos(mIDs[0]);
-     mServoPositions[1] = st.ReadPos(mIDs[1]);
      
      setPositions[0] = mSetPositions[0];
      setPositions[1] = mSetPositions[1];
