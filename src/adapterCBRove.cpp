@@ -99,9 +99,9 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
  * This function is responsible for performing the necessary operations for the AdapterCBRoveClass class.
  * It should be called periodically to ensure the proper functioning of the class.
  */
-void AdapterCBRoveClass::updateServo()
+bool AdapterCBRoveClass::updateServo()
 {
-     if (!checkInitialized()) return;
+     if (!checkInitialized()) return false;
      
      setPositions[0] = mSetPositions[0];
      setPositions[1] = mSetPositions[1];
@@ -121,6 +121,7 @@ void AdapterCBRoveClass::updateServo()
           else
                st.WritePosEx(mIDs[0], setPositions[0], setSpeeds[0], setAccs[0]);
      */          
+          return true;
           break;
      case SCMSpeed:
 
@@ -129,15 +130,18 @@ void AdapterCBRoveClass::updateServo()
                setSpeeds[0] = 0;
                setAccs[0] = 0;
           }
-          st.WriteSpe(mIDs[0], setSpeeds[0], setAccs[0]);
+          eServoSpeed[SERVO_X-1] = st.WriteSpe(mIDs[0], setSpeeds[0], setAccs[0]);
           if(mServoPositions[1] >= mMaxPosY[0] || mServoPositions[1] <= mMaxPosY[1])
           {
                setSpeeds[1] = 0;
                setAccs[1] = 0;
           }
-          st.WriteSpe(mIDs[1], setSpeeds[1], setAccs[1]);
+          eServoSpeed[SERVO_Y-1] = st.WriteSpe(mIDs[1], setSpeeds[1], setAccs[1]);
+
+          return eServoSpeed[SERVO_X-1] && eServoSpeed[SERVO_Y-1];
           break;
      default:
+          return false;
           break;
      } 
 
@@ -203,8 +207,7 @@ bool AdapterCBRoveClass::setServoPosition(s16 positionX, s16 positionY)
      else
           mSetPositions[1] = positionY;
 
-     updateServo();
-     return true;
+     return  updateServo();
 }
 
 
@@ -237,8 +240,8 @@ bool AdapterCBRoveClass::setServoSpeed(s16 speedX, s16 speedY)
      mSetSpeeds[0] = speedX;
      mSetSpeeds[1] = speedY;
 
-     updateServo();
-     return true;
+     
+     return updateServo();
 }
 
 
@@ -282,12 +285,13 @@ bool AdapterCBRoveClass::setServoAccY(u8 acc)
  */
 bool AdapterCBRoveClass::setServoMode(bool mode)
 {
+     
      if (!checkInitialized()) return false;
-     st.WheelMode(SERVO_X, mode);
-     st.WheelMode(SERVO_Y, mode);
+     eWheelMode[SERVO_X-1]=st.WheelMode(SERVO_X, mode);
+     eWheelMode[SERVO_Y-1]=st.WheelMode(SERVO_Y, mode);
      mServoModes[0] = mode;
      mServoModes[1] = mode;
-     return true;
+     return eWheelMode[SERVO_X-1] && eWheelMode[SERVO_Y-1];
 }
 
 

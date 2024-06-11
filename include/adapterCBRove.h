@@ -62,6 +62,9 @@ private:
     s16 setSpeeds[2]={1000};
     u8 setAccs[2]={100};
 
+    bool eWheelMode[2] = {false};
+    bool eServoSpeed[2] = {false};
+    
     
     //volatile bool mLastXAck = true;
     
@@ -95,7 +98,7 @@ public:
 
     void init(UART_HandleTypeDef *huartServo);
 
-    void updateServo();
+    bool updateServo();
 
     bool setServoPosition(s16 positionX, s16 positionY);
     bool setServoSpeed(s16 speedX, s16 speedY);
