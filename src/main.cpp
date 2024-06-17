@@ -76,8 +76,9 @@ int main(void)
   GPIO gpioC((uint32_t *)(0x40020800UL));
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
-  HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  HAL_CAN_Start(&hcan1);
+  
   
 
   TxHeader.IDE = CAN_ID_STD;
