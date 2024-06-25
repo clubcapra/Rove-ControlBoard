@@ -80,7 +80,7 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
      gpioC.writePin(PIN_GPIO_3, 0);
 
      st.pSerial=huartServo;
-     setMinMaxServoX((4095*2), (-4095*2));
+     setMinMaxServoX((4095*3), (-4095*3));
 
      //@todo: set min max servo Y
      setMinMaxServoY(4095, -4095);
