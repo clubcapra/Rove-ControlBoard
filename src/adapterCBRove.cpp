@@ -73,7 +73,7 @@ void AdapterCBRoveClass::init(UART_HandleTypeDef *huartServo)
 
      gpioB.writePin(PIN_LED_ARRIERE, 0);
      gpioC.writePin(PIN_LED_AVANT, 0);
-     gpioA.writePin(PIN_STROBE, 0);
+     gpioA.writePin(PIN_STROBE, 1);
 
      gpioC.writePin(PIN_GPIO_1, 0);
      gpioC.writePin(PIN_GPIO_2, 0);

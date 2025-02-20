@@ -8,8 +8,11 @@
 #include "api.h"
 #include "adapterCBRove.h"
 #include "Servo/Servo.h"
+extern "C" {
+  #include "ARGB.h"
+  }
 
-#define TIMMER_WHILE 1 // 0 = 100ms, 1 = 100us
+#define TIMMER_WHILE 0 // 0 = 100ms, 1 = 100us
 
 CAN_HandleTypeDef hcan1;
 
@@ -24,7 +27,7 @@ UART_HandleTypeDef huart6;
 CAN_RxHeaderTypeDef RxHeader;
 CAN_TxHeaderTypeDef TxHeader;
 
-
+#define STATE_PIN true
 
 void SystemClock_Config(void);
 
@@ -44,8 +47,9 @@ void sendCallback(uint8_t* buff, size_t length);
 void onDataRevieved(uint8_t* buff, size_t length);
 void handleCommand();
 
-//volatile uint16_t timerInt=0;
+volatile uint16_t timerInt=0;
 //volatile uint16_t timerApi=0;
+volatile uint16_t timerStrobe=0;
 SMS_STS st;
 
 uint8_t canRxData[8];
@@ -63,7 +67,7 @@ int main(void)
 
   MX_GPIO_Init();
   MX_DMA_Init();
-  //MX_TIM2_Init();
+  MX_TIM2_Init();
   MX_USART2_UART_Init();
   MX_USART6_UART_Init();
   MX_CAN1_Init();
@@ -76,22 +80,32 @@ int main(void)
   GPIO gpioC((uint32_t *)(0x40020800UL));
   gpioC.setPinMode(13,INPUT);
   HAL_TIM_Base_Start_IT(&htim2);
+
+
+  AdapterCBRove.init(&huart6);
+  ARGB_Init();
+  while(timerStrobe <=50)
+  {
+    AdapterCBRove.setLEDStrobe(true);
+  }
+  timerStrobe=0;
+  HAL_TIM_Base_Stop(&htim2);
+  AdapterCBRove.setGPIO1(true);
+  AdapterCBRove.setLEDStrobe(STATE_PIN);
+  AdapterCBRove.setLEDBack(STATE_PIN);
+  AdapterCBRove.setLEDFront(STATE_PIN); 
+
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
   HAL_CAN_Start(&hcan1);
-  
-  
-
   TxHeader.IDE = CAN_ID_STD;
   TxHeader.StdId = 0x446;
   TxHeader.RTR = CAN_RTR_DATA;
 
   
-  AdapterCBRove.init(&huart6);
-  
 
   CommandManager.setCommands(commands, COMMANDS_COUNT);
   CommandManager.setSendCB(&sendCallback);
-
+  
 
 
   while (1)
@@ -165,7 +179,7 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 0 */
 
   /* USER CODE END CAN1_Init 0 */
-  //Baud rate 250kbit/s
+  //Baud rate 500kbit/s
   /* USER CODE BEGIN CAN1_Init 1 */
 
   /* USER CODE END CAN1_Init 1 */
@@ -173,8 +187,8 @@ static void MX_CAN1_Init(void)
   hcan1.Init.Prescaler = 14;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_2TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_5TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_6TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_2TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_3TQ;
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
@@ -437,12 +451,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-  /*
+  
   if(htim == &htim2)
   {
+    timerStrobe++;
     timerInt++;
     //timerApi++;
-  }*/
+  }
     
 }
 
